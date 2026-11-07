@@ -18,7 +18,7 @@ Kernel 7.2.9 (`linux-postmarketos-qcom-sc7280`) with the patches in
 | Ultra-wide camera | Works | Sony IMX355, 1636x1232 @ 30 fps. Full resolution (3272x2464) resets the phone |
 | Main camera | Not yet | Samsung S5KGW3 (64 MP), no mainline driver |
 | Front camera | Not yet | Samsung S5K3T2 (20 MP), no mainline driver |
-| Focus motor | Not yet | Dongwoon DW9800 (main and macro), no mainline driver |
+| Focus motor | Not yet | Dongwoon DW9800 on the main camera, no mainline driver. The macro camera is fixed focus |
 | Calls, SMS, mobile data | Untested | |
 | Fingerprint, haptics | Not yet | |
 
