@@ -15,7 +15,7 @@ Kernel 7.2.9 (`linux-postmarketos-qcom-sc7280`) with the patches in
 | Speaker, earpiece | Work | two TFA9873 on PRIMARY_MI2S, q6asm/q6afe. No speaker protection calibration, avoid long loud playback |
 | Microphones | Not yet | LPASS VA/TX macros not described |
 | Macro camera | Works | Samsung S5K5E9YX04, 2584x1944 @ 30 fps through libcamera's soft ISP |
-| Ultra-wide camera | Not yet | Sony IMX355, mainline driver exists |
+| Ultra-wide camera | Works | Sony IMX355, 1636x1232 @ 30 fps. Full resolution (3272x2464) resets the phone |
 | Main camera | Not yet | Samsung S5KGW3 (64 MP), no mainline driver |
 | Front camera | Not yet | Samsung S5K3T2 (20 MP), no mainline driver |
 | Focus motor | Not yet | Dongwoon DW9800 (main and macro), no mainline driver |
@@ -38,8 +38,11 @@ modes) for each sensor.
 
 ## Known issues
 
-- On some boots phoc's first modeset fails with
-  `Atomic commit failed: Resource busy` and the screen stays black.
-  Restarting the session (`systemctl restart greetd`) brings it back.
+- The first DSI bring-up after the bootloader hand-off leaves the panel dark
+  and deaf to DCS commands. An initramfs hook cycles the panel once
+  (`50-xiaomi-lisa-panel-cycle.sh`); a proper fix in the msm DSI hand-off is
+  still to do.
+- UPower shows the battery as discharging while charging (the firmware reports
+  the charge current as negative).
 - The camera app (Snapshot) sometimes fails to start.
 - libcamera has no sensor helper for the S5K5E9, so gain control is rough.

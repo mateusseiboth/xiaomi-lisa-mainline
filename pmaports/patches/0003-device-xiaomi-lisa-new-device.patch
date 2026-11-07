@@ -1,44 +1,47 @@
-From cfb9e0028fb755ecf68a47ccdd33284c22721906 Mon Sep 17 00:00:00 2001
+From 7a9e67a2b587508a7412cb24300740b41eb43d28 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
-Date: Sat, 7 Nov 2026 15:12:16 -0400
+Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 3/3] device-xiaomi-lisa: new device
 
 Xiaomi 11 Lite 5G NE / 11 LE (SM7325). Boots straight from the stock ABL:
 header v3 boot.img and vendor_boot with the stock load addresses, a dtbo
 with a no-op overlay in the format the ABL expects, and verified boot
-disabled in vbmeta.
+disabled in vbmeta. An initramfs hook cycles the panel once, since the
+first DSI bring-up after the bootloader hand-off leaves it dark.
 
 Display, GPU, touchscreen, Wi-Fi, Bluetooth, battery, modem, speaker,
-earpiece and the macro camera work.
+earpiece, macro and ultra-wide cameras work.
 ---
- device/testing/device-xiaomi-lisa/APKBUILD    |  68 ++++++++++++++++++
- device/testing/device-xiaomi-lisa/deviceinfo  |  37 ++++++++++
- .../device-xiaomi-lisa/dtbo-overlay.dts       |  17 +++++
+ device/testing/device-xiaomi-lisa/APKBUILD    |  73 ++++++++++++++++++
+ device/testing/device-xiaomi-lisa/deviceinfo  |  37 +++++++++
+ .../device-xiaomi-lisa/dtbo-overlay.dts       |  17 ++++
  device/testing/device-xiaomi-lisa/dtbo.img    | Bin 0 -> 4096 bytes
+ .../initfs-hook-panel-cycle.sh                |  18 +++++
  .../testing/device-xiaomi-lisa/modules-initfs |   5 ++
  .../testing/device-xiaomi-lisa/ucm-HiFi.conf  |  26 +++++++
  .../testing/device-xiaomi-lisa/ucm-lisa.conf  |  11 +++
- 7 files changed, 164 insertions(+)
+ 8 files changed, 187 insertions(+)
  create mode 100644 device/testing/device-xiaomi-lisa/APKBUILD
  create mode 100644 device/testing/device-xiaomi-lisa/deviceinfo
  create mode 100644 device/testing/device-xiaomi-lisa/dtbo-overlay.dts
  create mode 100644 device/testing/device-xiaomi-lisa/dtbo.img
+ create mode 100644 device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh
  create mode 100644 device/testing/device-xiaomi-lisa/modules-initfs
  create mode 100644 device/testing/device-xiaomi-lisa/ucm-HiFi.conf
  create mode 100644 device/testing/device-xiaomi-lisa/ucm-lisa.conf
 
 diff --git a/device/testing/device-xiaomi-lisa/APKBUILD b/device/testing/device-xiaomi-lisa/APKBUILD
 new file mode 100644
-index 0000000..3846b74
+index 0000000..f3918ca
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/APKBUILD
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,73 @@
 +# Reference: <https://postmarketos.org/devicepkg>
 +maintainer="Jens Reidel <adrian@travitia.xyz>"
 +pkgname=device-xiaomi-lisa
 +pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE"
 +pkgver=1
-+pkgrel=8
++pkgrel=0
 +url="https://postmarketos.org"
 +license="MIT"
 +arch="aarch64"
@@ -70,6 +73,7 @@ index 0000000..3846b74
 +	deviceinfo
 +	dtbo-overlay.dts
 +	dtbo.img
++	initfs-hook-panel-cycle.sh
 +	modules-initfs
 +	ucm-HiFi.conf
 +	ucm-lisa.conf
@@ -85,6 +89,9 @@ index 0000000..3846b74
 +	# Empty overlay the Xiaomi ABL needs to find in dtbo, see dtbo-overlay.dts
 +	install -Dm644 "$srcdir"/dtbo.img "$pkgdir"/boot/dtbo.img
 +
++	install -Dm644 "$srcdir"/initfs-hook-panel-cycle.sh \
++		"$pkgdir"/usr/share/mkinitfs/hooks/50-xiaomi-lisa-panel-cycle.sh
++
 +	install -Dm644 "$srcdir"/ucm-lisa.conf \
 +		"$pkgdir"/usr/share/alsa/ucm2/Xiaomi/lisa/lisa.conf
 +	install -Dm644 "$srcdir"/ucm-HiFi.conf \
@@ -94,16 +101,17 @@ index 0000000..3846b74
 +		"$pkgdir/usr/share/alsa/ucm2/conf.d/sm8250/Xiaomi 11 Lite 5G NE.conf"
 +}
 +sha512sums="
-+34959e9e9ce00fc493e0d81427fc009b06a8a60df20a4877182a6037122cc83f92d2daf3731b924a325f39d435e0f0ed7d1efdf8bae98fdf98aa3ecc97cd4d58  deviceinfo
++560a85daffdfbe373098b9fa500f75beb5cf97a1936c4681b453f8f8ca409da131f5256f4e0c1f60a7dadf7a4172c927e9be90c31901d1c28571bf4021f539bc  deviceinfo
 +3dd47436d94793483e8834056a12d61d3eae56dcf109a20b2dc2b0b2912fbe02eae33b80848e2ed1a712f40f170b2fb12e75f13bc0f379e82e1d59643b5e32c3  dtbo-overlay.dts
 +a94913063158d0bc38f8d997a3de175ce5fb2af163df066f752c5e34da016e61e52a00a981a06e28ad3ccb925636d13823a4f8f455217f94cff4f1e11bc423dd  dtbo.img
++d7aebceca621529689d6b5fce6285f05fb4147f9a5f2c84b26c522a8464ada91ef8421ace3f18d8ad189d94cbda399af1a8a7b394b1d99e2f43b9b6e7943fbac  initfs-hook-panel-cycle.sh
 +7b5d121fb060c4c339f2950ed3378a21a677098863a68797164dbbf3da6039c38a50a17f8839f7403a6d460d0b9521604886407fc0bac583a801f6afa5ea04ab  modules-initfs
 +ccc2d75c7c970cea3ee250b4b0489cb91e4144a2b3318f726da6e18250b4b20887667d97bff95d6ae9e96339f3c8ba20d68de44ffa123a434024b084e430b36e  ucm-HiFi.conf
 +e5b73faf450566e53a90fb775d1121c99d09cea002c1cb71db74577c0dc82ab89df4207c78fb4cb08de9ce159af4df0789de06c664acf5d93f40e3b0710b04a4  ucm-lisa.conf
 +"
 diff --git a/device/testing/device-xiaomi-lisa/deviceinfo b/device/testing/device-xiaomi-lisa/deviceinfo
 new file mode 100644
-index 0000000..bc9a3af
+index 0000000..d6ca8bb
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/deviceinfo
 @@ -0,0 +1,37 @@
@@ -131,7 +139,7 @@ index 0000000..bc9a3af
 +
 +# Bootloader related
 +deviceinfo_flash_method="fastboot"
-+deviceinfo_kernel_cmdline="console=tty0"
++deviceinfo_kernel_cmdline="console=tty0 cma=256M"
 +deviceinfo_generate_bootimg="true"
 +deviceinfo_bootimg_qcdt="false"
 +deviceinfo_bootimg_dtb_second="false"
@@ -182,6 +190,30 @@ o6}c*8oYskn3u8)TR%n?_vrJm9rEV7`2!bF8f*=TjAc+6`0c2%T`2YX_
 literal 0
 HcmV?d00001
 
+diff --git a/device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh b/device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh
+new file mode 100644
+index 0000000..a8195a1
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh
+@@ -0,0 +1,18 @@
++#!/bin/sh
++# The first DSI link bring-up after the bootloader hand-off is broken on lisa:
++# the panel stays dark and ignores DCS commands until the link is powered off
++# and on again. Do that once, as soon as the msm framebuffer shows up, so the
++# boot console is visible and the compositor's first modeset works.
++
++fb=/sys/class/graphics/fb0
++
++for _ in $(seq 1 100); do
++	[ "$(cat "$fb/name" 2>/dev/null)" = "msmdrmfb" ] && break
++	sleep 0.1
++done
++
++[ "$(cat "$fb/name" 2>/dev/null)" = "msmdrmfb" ] || exit 0
++
++echo 1 > "$fb/blank"
++sleep 0.2
++echo 0 > "$fb/blank"
 diff --git a/device/testing/device-xiaomi-lisa/modules-initfs b/device/testing/device-xiaomi-lisa/modules-initfs
 new file mode 100644
 index 0000000..400013e

@@ -1,6 +1,6 @@
-From 2b298eae7e5b0a635003fc1f35e6cda748ce1d24 Mon Sep 17 00:00:00 2001
+From a237f865da587382f55956a0e478909e087dcaef Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
-Date: Sat, 7 Nov 2026 15:12:16 -0400
+Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 2/3] firmware-xiaomi-lisa: new aport
 
 Firmware for the Xiaomi 11 Lite 5G NE, from the mainlining fork

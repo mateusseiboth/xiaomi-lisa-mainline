@@ -2,8 +2,9 @@ From: Jens Reidel <adrian@travitia.xyz>
 Subject: [PATCH] drm/panel: Add CSOT VTDR6130 panel driver
 
 From https://github.com/mainlining/linux/commit/e9bf9a17b6, ported to
-devm_drm_panel_alloc() since drm_panel_init() is gone in 7.2, and with
-the regulator consumer header included explicitly.
+devm_drm_panel_alloc() since drm_panel_init() is gone in 7.2, with the
+regulator consumer header included explicitly, and restoring the backlight
+level after the init sequence (it sets the brightness to 0).
 ---
 --- a/drivers/gpu/drm/panel/Kconfig
 +++ b/drivers/gpu/drm/panel/Kconfig
@@ -38,7 +39,7 @@ the regulator consumer header included explicitly.
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 --- a/drivers/gpu/drm/panel/panel-csot-vtdr6130.c
 +++ b/drivers/gpu/drm/panel/panel-csot-vtdr6130.c
-@@ -0,0 +1,510 @@
+@@ -0,0 +1,522 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Generated with linux-mdss-dsi-panel-driver-generator from vendor device tree:
@@ -286,6 +287,18 @@ the regulator consumer header included explicitly.
 +	mipi_dsi_msleep(&dsi_ctx, 50);
 +	mipi_dsi_dcs_set_display_on_multi(&dsi_ctx);
 +	mipi_dsi_usleep_range(&dsi_ctx, 16000, 17000);
++
++	/*
++	 * The init sequence above sets the brightness to 0. Restore the current
++	 * backlight level, otherwise the panel stays dark until userspace
++	 * touches the backlight (no boot console, black screen until the UI).
++	 */
++	if (ctx->panel.backlight) {
++		u16 level = ctx->panel.backlight->props.brightness;
++		u8 cmd[] = { MIPI_DCS_SET_DISPLAY_BRIGHTNESS, level >> 8, level & 0xff };
++
++		mipi_dsi_dcs_write_buffer_multi(&dsi_ctx, cmd, sizeof(cmd));
++	}
 +
 +	return dsi_ctx.accum_err;
 +}
