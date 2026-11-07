@@ -1,0 +1,87 @@
+From: Mateus Seiboth <mateusseiboth12@gmail.com>
+Subject: [PATCH] arm64: dts: qcom: sm7325-xiaomi-lisa: make the stock Xiaomi ABL boot it
+
+The stock ABL (HyperOS 2) only boots a DTB that has qcom,msm-id and
+qcom,board-id, a /reserved-memory/splash_region node with the stock size,
+the mem-offline and Android fstab nodes it updates, and the __symbols__
+the Gunyah hypervisor overlay resolves (wdog, arch_timer, soc).
+---
+--- a/arch/arm64/boot/dts/qcom/Makefile
++++ b/arch/arm64/boot/dts/qcom/Makefile
+@@ -352,6 +352,8 @@
+ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-motorola-dubai-tianma.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-nothing-spacewar.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-xiaomi-lisa.dtb
++# The Xiaomi ABL applies dtbo/hypervisor overlays that need __symbols__
++DTC_FLAGS_sm7325-xiaomi-lisa := -@
+ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-xiaomi-taoyao.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-hdk.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-microsoft-surface-duo.dtb
+--- a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++++ b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
+@@ -31,6 +31,13 @@
+ 	compatible = "xiaomi,lisa", "qcom,sm7325";
+ 	chassis-type = "handset";
+ 
++	/*
++	 * The Xiaomi ABL picks the DTB by these ids. Values from the stock
++	 * yupik DTB and the lisa dtbo entry.
++	 */
++	qcom,msm-id = <475 0x10000>, <515 0x10000>;
++	qcom,board-id = <0x1000b 0>;
++
+ 	aliases {
+ 		serial0 = &uart5;
+ 		serial1 = &uart7;
+@@ -182,8 +189,12 @@
+ 			no-map;
+ 		};
+ 
+-		framebuffer_mem: framebuffer@e1000000 {
+-			reg = <0x0 0xe1000000 0x0 (1080 * 2400 * 4)>;
++		/*
++		 * The ABL refuses to boot unless it finds the splash region under
++		 * this exact path and with the stock size.
++		 */
++		framebuffer_mem: splash_region {
++			reg = <0x0 0xe1000000 0x0 0x2300000>;
+ 			no-map;
+ 		};
+ 
+@@ -1106,3 +1117,36 @@
+ &wifi {
+ 	status = "okay";
+ };
++
++/*
++ * Nodes and labels the Xiaomi ABL touches before handing over to the kernel:
++ * it updates mem-offline and the Android fstab, and the Gunyah hypervisor
++ * overlay targets &wdog, &arch_timer and &soc.
++ */
++/ {
++	mem-offline {
++		compatible = "qcom,mem-offline";
++		offline-sizes = <0x1 0x40000000 0x0 0x40000000>,
++				<0x1 0xc0000000 0x0 0x80000000>,
++				<0x2 0xc0000000 0x1 0x40000000>;
++		granule = <512>;
++	};
++
++	firmware {
++		android {
++			compatible = "android,firmware";
++
++			fstab {
++				compatible = "android,fstab";
++			};
++		};
++	};
++
++	arch_timer: timer {
++	};
++};
++
++&soc {
++	wdog: watchdog@17c10000 {
++	};
++};

@@ -1,0 +1,247 @@
+From cfb9e0028fb755ecf68a47ccdd33284c22721906 Mon Sep 17 00:00:00 2001
+From: Mateus Seiboth <mateusseiboth@gmail.com>
+Date: Sat, 7 Nov 2026 15:12:16 -0400
+Subject: [PATCH 3/3] device-xiaomi-lisa: new device
+
+Xiaomi 11 Lite 5G NE / 11 LE (SM7325). Boots straight from the stock ABL:
+header v3 boot.img and vendor_boot with the stock load addresses, a dtbo
+with a no-op overlay in the format the ABL expects, and verified boot
+disabled in vbmeta.
+
+Display, GPU, touchscreen, Wi-Fi, Bluetooth, battery, modem, speaker,
+earpiece and the macro camera work.
+---
+ device/testing/device-xiaomi-lisa/APKBUILD    |  68 ++++++++++++++++++
+ device/testing/device-xiaomi-lisa/deviceinfo  |  37 ++++++++++
+ .../device-xiaomi-lisa/dtbo-overlay.dts       |  17 +++++
+ device/testing/device-xiaomi-lisa/dtbo.img    | Bin 0 -> 4096 bytes
+ .../testing/device-xiaomi-lisa/modules-initfs |   5 ++
+ .../testing/device-xiaomi-lisa/ucm-HiFi.conf  |  26 +++++++
+ .../testing/device-xiaomi-lisa/ucm-lisa.conf  |  11 +++
+ 7 files changed, 164 insertions(+)
+ create mode 100644 device/testing/device-xiaomi-lisa/APKBUILD
+ create mode 100644 device/testing/device-xiaomi-lisa/deviceinfo
+ create mode 100644 device/testing/device-xiaomi-lisa/dtbo-overlay.dts
+ create mode 100644 device/testing/device-xiaomi-lisa/dtbo.img
+ create mode 100644 device/testing/device-xiaomi-lisa/modules-initfs
+ create mode 100644 device/testing/device-xiaomi-lisa/ucm-HiFi.conf
+ create mode 100644 device/testing/device-xiaomi-lisa/ucm-lisa.conf
+
+diff --git a/device/testing/device-xiaomi-lisa/APKBUILD b/device/testing/device-xiaomi-lisa/APKBUILD
+new file mode 100644
+index 0000000..3846b74
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/APKBUILD
+@@ -0,0 +1,68 @@
++# Reference: <https://postmarketos.org/devicepkg>
++maintainer="Jens Reidel <adrian@travitia.xyz>"
++pkgname=device-xiaomi-lisa
++pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE"
++pkgver=1
++pkgrel=8
++url="https://postmarketos.org"
++license="MIT"
++arch="aarch64"
++options="!check !archcheck"
++depends="
++	alsa-ucm-conf-qcom-sc7280
++	android-tools
++	firmware-qcom-adreno-a660
++	firmware-xiaomi-lisa-adsp
++	firmware-xiaomi-lisa-cdsp
++	firmware-xiaomi-lisa-gpu
++	firmware-xiaomi-lisa-ipa
++	firmware-xiaomi-lisa-modem
++	firmware-xiaomi-lisa-sensors
++	firmware-xiaomi-lisa-vpu
++	firmware-xiaomi-lisa-wpss
++	linux-firmware-ath11k
++	linux-firmware-qca
++	linux-postmarketos-qcom-sc7280
++	make-dynpart-mappings
++	postmarketos-base
++	soc-qcom
++	soc-qcom-modem
++	soc-qcom-qbootctl
++	unl0kr-fbforcerefresh
++"
++makedepends="devicepkg-dev"
++source="
++	deviceinfo
++	dtbo-overlay.dts
++	dtbo.img
++	modules-initfs
++	ucm-HiFi.conf
++	ucm-lisa.conf
++"
++
++build() {
++	devicepkg_build $startdir $pkgname
++}
++
++package() {
++	devicepkg_package $startdir $pkgname
++
++	# Empty overlay the Xiaomi ABL needs to find in dtbo, see dtbo-overlay.dts
++	install -Dm644 "$srcdir"/dtbo.img "$pkgdir"/boot/dtbo.img
++
++	install -Dm644 "$srcdir"/ucm-lisa.conf \
++		"$pkgdir"/usr/share/alsa/ucm2/Xiaomi/lisa/lisa.conf
++	install -Dm644 "$srcdir"/ucm-HiFi.conf \
++		"$pkgdir"/usr/share/alsa/ucm2/Xiaomi/lisa/HiFi.conf
++	mkdir -p "$pkgdir"/usr/share/alsa/ucm2/conf.d/sm8250
++	ln -s ../../Xiaomi/lisa/lisa.conf \
++		"$pkgdir/usr/share/alsa/ucm2/conf.d/sm8250/Xiaomi 11 Lite 5G NE.conf"
++}
++sha512sums="
++34959e9e9ce00fc493e0d81427fc009b06a8a60df20a4877182a6037122cc83f92d2daf3731b924a325f39d435e0f0ed7d1efdf8bae98fdf98aa3ecc97cd4d58  deviceinfo
++3dd47436d94793483e8834056a12d61d3eae56dcf109a20b2dc2b0b2912fbe02eae33b80848e2ed1a712f40f170b2fb12e75f13bc0f379e82e1d59643b5e32c3  dtbo-overlay.dts
++a94913063158d0bc38f8d997a3de175ce5fb2af163df066f752c5e34da016e61e52a00a981a06e28ad3ccb925636d13823a4f8f455217f94cff4f1e11bc423dd  dtbo.img
++7b5d121fb060c4c339f2950ed3378a21a677098863a68797164dbbf3da6039c38a50a17f8839f7403a6d460d0b9521604886407fc0bac583a801f6afa5ea04ab  modules-initfs
++ccc2d75c7c970cea3ee250b4b0489cb91e4144a2b3318f726da6e18250b4b20887667d97bff95d6ae9e96339f3c8ba20d68de44ffa123a434024b084e430b36e  ucm-HiFi.conf
++e5b73faf450566e53a90fb775d1121c99d09cea002c1cb71db74577c0dc82ab89df4207c78fb4cb08de9ce159af4df0789de06c664acf5d93f40e3b0710b04a4  ucm-lisa.conf
++"
+diff --git a/device/testing/device-xiaomi-lisa/deviceinfo b/device/testing/device-xiaomi-lisa/deviceinfo
+new file mode 100644
+index 0000000..bc9a3af
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/deviceinfo
+@@ -0,0 +1,37 @@
++# Reference: <https://postmarketos.org/deviceinfo>
++# Please use double quotes only. You can source this file in shell
++# scripts.
++
++deviceinfo_format_version="0"
++deviceinfo_name="Xiaomi 11 Lite 5G NE / 11 LE"
++deviceinfo_manufacturer="Xiaomi"
++deviceinfo_codename="xiaomi-lisa"
++deviceinfo_year="2021"
++deviceinfo_dtb="qcom/sm7325-xiaomi-lisa"
++deviceinfo_append_dtb="true"
++deviceinfo_arch="aarch64"
++deviceinfo_flash_kernel_on_update="true"
++
++# Device related
++deviceinfo_gpu_accelerated="true"
++deviceinfo_chassis="handset"
++deviceinfo_keyboard="false"
++deviceinfo_external_storage="false"
++deviceinfo_screen_width="1080"
++deviceinfo_screen_height="2400"
++
++# Bootloader related
++deviceinfo_flash_method="fastboot"
++deviceinfo_kernel_cmdline="console=tty0"
++deviceinfo_generate_bootimg="true"
++deviceinfo_bootimg_qcdt="false"
++deviceinfo_bootimg_dtb_second="false"
++deviceinfo_flash_pagesize="4096"
++# Same load addresses as the stock vendor_boot, the ABL rejects the defaults.
++# boot-deploy does not pass the flash offsets to mkbootimg for header v3.
++deviceinfo_bootimg_custom_args="--base 0x00000000 --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100 --dtb_offset 0x01f00000"
++deviceinfo_header_version="3"
++deviceinfo_rootfs_image_sector_size="4096"
++deviceinfo_super_partitions="/dev/sda20 /dev/sda20"
++deviceinfo_flash_fastboot_partition_vbmeta="vbmeta"
++deviceinfo_flash_fastboot_partition_dtbo="dtbo"
+diff --git a/device/testing/device-xiaomi-lisa/dtbo-overlay.dts b/device/testing/device-xiaomi-lisa/dtbo-overlay.dts
+new file mode 100644
+index 0000000..e095a80
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/dtbo-overlay.dts
+@@ -0,0 +1,17 @@
++/dts-v1/;
++/plugin/;
++
++/*
++ * No-op overlay in the same form as the stock Xiaomi ones: target by label,
++ * resolved through __fixups__ against the main DTB __symbols__.
++ */
++/ {
++	model = "Xiaomi 11 Lite 5G NE";
++	compatible = "xiaomi,lisa", "qcom,sm7325";
++	qcom,msm-id = <0x1db 0x10000>;
++	qcom,board-id = <0x1000b 0x0>;
++};
++
++&framebuffer_mem {
++	xiaomi,mainline-dtbo-noop;
++};
+diff --git a/device/testing/device-xiaomi-lisa/dtbo.img b/device/testing/device-xiaomi-lisa/dtbo.img
+new file mode 100644
+index 0000000000000000000000000000000000000000..0ea73ae496e1ef8b4135f69b4cb566272ee60a08
+GIT binary patch
+literal 4096
+zcmeH?!Ab)$5QhJ#h$4a>1TV@S1-odgMd_&*@lrf{5JI+_ErHEu&2FW>h40}5_!_-=
+z@ELpqaV49y1^Wu~!H}8o&p$JtAMd9Cn*)eKF#jIF!`=W4L$Stu|MweSa|^I*0A~OW
+zfu+F{fS<KSv~wJr0FGSpsD#lf>UN`%s%6x_j~?zqpVJ%z*q*hTPOd6}=dsb9O5a@d
+z`U{^OKbw68ch~3sPQb7iyjW(%M9ZQcUba6@vjyP1X`06E#kqNrHW#m)FMJ(602?6~
+z=b4&K%gRfZH;gV;=7U<;iL3{H%Bpu)n^fi)8(oT8CAsv6=t{>b^?721O<m<J5U$oj
+o6}c*8oYskn3u8)TR%n?_vrJm9rEV7`2!bF8f*=TjAc+6`0c2%T`2YX_
+
+literal 0
+HcmV?d00001
+
+diff --git a/device/testing/device-xiaomi-lisa/modules-initfs b/device/testing/device-xiaomi-lisa/modules-initfs
+new file mode 100644
+index 0000000..400013e
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/modules-initfs
+@@ -0,0 +1,5 @@
++fsa4480
++goodix_berlin_core
++goodix_berlin_spi
++spi-geni-qcom
++panel-csot-vtdr6130
+diff --git a/device/testing/device-xiaomi-lisa/ucm-HiFi.conf b/device/testing/device-xiaomi-lisa/ucm-HiFi.conf
+new file mode 100644
+index 0000000..5f86a38
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/ucm-HiFi.conf
+@@ -0,0 +1,26 @@
++# Use case configuration for Xiaomi 11 Lite 5G NE
++
++SectionVerb {
++	EnableSequence [
++		cset "name='PRI_MI2S_RX Audio Mixer MultiMedia1' 1"
++	]
++
++	DisableSequence [
++		cset "name='PRI_MI2S_RX Audio Mixer MultiMedia1' 0"
++	]
++
++	Value {
++		TQ "HiFi"
++	}
++}
++
++SectionDevice."Speaker" {
++	Comment "Speaker & Earpiece Playback"
++
++	Value {
++		PlaybackChannels 2
++		PlaybackPriority 100
++		PlaybackPCM "hw:${CardId},0"
++		PlaybackMixer "default:${CardId}"
++	}
++}
+diff --git a/device/testing/device-xiaomi-lisa/ucm-lisa.conf b/device/testing/device-xiaomi-lisa/ucm-lisa.conf
+new file mode 100644
+index 0000000..633d095
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/ucm-lisa.conf
+@@ -0,0 +1,11 @@
++# Use case configuration for Xiaomi 11 Lite 5G NE
++
++Syntax 4
++
++SectionUseCase."HiFi" {
++	File "/Xiaomi/lisa/HiFi.conf"
++	Comment "HiFi quality Music."
++}
++
++Include.card-init.File "/lib/card-init.conf"
++Include.ctl-remap.File "/lib/ctl-remap.conf"
+-- 
+2.56.0
+

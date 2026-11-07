@@ -1,0 +1,97 @@
+# Co-Maintainer: Aelin <aelin@postmarketos.org>
+# Co-Maintainer: Federico Amedeo Izzo <federico@izzo.pro>
+maintainer="Luca Weiss <luca@lucaweiss.eu>"
+_flavor="postmarketos-qcom-sc7280"
+pkgname=linux-$_flavor
+pkgver=7.2.9
+pkgrel=11
+pkgdesc="Mainline Kernel fork for SC7280/SM7325/QCM6490 devices"
+arch="aarch64"
+_carch="arm64"
+url="https://github.com/sc7280-mainline/linux"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps
+	pmb:cross-native
+	pmb:kconfigcheck-community
+	pmb:kconfigcheck-uefi
+	pmb:kconfigcheck-virt
+	"
+makedepends="
+	bison
+	clang
+	elfutils-dev
+	findutils
+	flex
+	installkernel
+	linux-headers
+	lld
+	llvm
+	openssl-dev
+	pahole
+	perl
+	python3
+	zstd
+"
+
+_repo="linux"
+_config="config-$_flavor.$arch"
+_tag="v$pkgver-sc7280"
+
+# Source
+source="
+	https://github.com/sc7280-mainline/$_repo/archive/refs/tags/$_tag/$_repo-$_tag.tar.gz
+	$_config
+	0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
+	0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
+	0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
+	0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
+	0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
+	0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
+	0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
+"
+builddir="$srcdir/$_repo-$pkgver-sc7280"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/config-$_flavor.$arch" .config
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" LLVM=1 \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-$_flavor"
+}
+
+package() {
+	# ZBOOT EFI decompressor for EFI booting
+	install -Dm644 "$builddir/arch/$_carch/boot/vmlinuz.efi" \
+		"$pkgdir/boot/linux.efi"
+
+	# Old GZIP'd kernel image for boot.img compatibility
+	install -Dm644 "$builddir/arch/$_carch/boot/vmlinuz" \
+		"$pkgdir/boot/vmlinuz"
+
+	make modules_install dtbs_install \
+		ARCH="$_carch" \
+		LLVM=1 \
+		INSTALL_PATH="$pkgdir"/boot/ \
+		INSTALL_MOD_PATH="$pkgdir"/usr \
+		INSTALL_MOD_STRIP=1 \
+		INSTALL_DTBS_PATH="$pkgdir"/boot/dtbs
+	rm "$pkgdir"/usr/lib/modules/*/build
+
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
+}
+
+sha512sums="
+4852430f42a9e45833d590559875b869405d8d28d93fb9111f9b25f0b0d336c36d9be6a56a27da9c3cde642df17f792055729fa41256f51860794db3afdae674  linux-v7.2.9-sc7280.tar.gz
+d36a25a543ee2686fab1674672528ae20d8a4706476613e1457fb777c4d1d3f93601a4274a02edad83fcd2e1bb79f4b62e9d0281e0f585f8707a0c526ef3b05d  config-postmarketos-qcom-sc7280.aarch64
+7eb57a1209ec20941fb41af8af15736b158cb4ef1a13aafeeef384380f36061b4e80cfadba4abe3d129660085aba0cc13363dddd1d12abc26e2f48949e9b9a62  0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
+c7630ec480dc073cc115edd971b0eea4b61b5c089f5f01a833821fb4d920100b71639a9c7ae3c4681d52d9e4b08a5b90ca651285531cad4e18e0814ce1a77dfb  0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
+da4436b1e510dd954b49a92585a99e5057237d2602ea6cab588863d85ccd5c23448499633ea77eccbebd3826266e1de127778a5e930208af98493be552cf2f7b  0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
+225bcb1ca05d88b34de9be9615fff74f81340306139926a685851c59169f5cebcc7ef80b6b579f138c958d255e9bc82f5106c679e9ec5e0a40d77da006991443  0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
+41146c92fc14e051c62689fb1560ab90e2ea26107eae6ce6089b018cca90e3c8dc6dd9bb4f24c54f37c13f0367f483746e9abfdb9612104812e0766fefe3ea3c  0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
+3f95a63211feead22463437a3aa6803cb61a15e420cc5d10386bb44b2b8f7ce3dc2cb9ca360168b5ead2c75f8dcb27aadd6777a1cf76622922d74b12ce61677b  0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
+08b11b61e8c213709a807309637a7d8e16ab2d498c1e052a2fac231a9254d441dba1e480c6758aa413b75b4f98af7e05bfccb31adfa0d93ecc7752768d9858c9  0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
+"

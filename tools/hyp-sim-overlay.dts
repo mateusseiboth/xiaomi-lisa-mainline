@@ -1,0 +1,29 @@
+/dts-v1/;
+/plugin/;
+
+/*
+ * Approximation of the overlay the Gunyah hypervisor makes the ABL apply on
+ * lisa, reconstructed by diffing the final DTB (/sys/firmware/fdt) against the
+ * base DTB plus the board overlay. Used to check a DTB before flashing.
+ */
+&wdog {
+	status = "disabled";
+};
+
+&arch_timer {
+	always-on;
+};
+
+/ {
+	fragment@99 {
+		target-path = "/";
+
+		__overlay__ {
+			hypervisor {
+				compatible = "qcom,haven-hypervisor-1.0", "qcom,haven-hypervisor", "simple-bus";
+				#address-cells = <2>;
+				#size-cells = <0>;
+			};
+		};
+	};
+};

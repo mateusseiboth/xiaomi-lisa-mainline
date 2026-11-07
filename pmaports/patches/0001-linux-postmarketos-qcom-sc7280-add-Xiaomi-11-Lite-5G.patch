@@ -1,0 +1,3137 @@
+From d43aa45f7862dc3765ffafa02a84ee719806d984 Mon Sep 17 00:00:00 2001
+From: Mateus Seiboth <mateusseiboth@gmail.com>
+Date: Sat, 7 Nov 2026 15:12:02 -0400
+Subject: [PATCH 1/3] linux-postmarketos-qcom-sc7280: add Xiaomi 11 Lite 5G NE
+ support
+
+Add the upstream sm7325-xiaomi-lisa DTS and the changes the stock Xiaomi
+ABL (HyperOS 2) needs to boot it: msm-id and board-id, the splash_region
+reserved memory node, the mem-offline and Android fstab nodes, and the
+__symbols__ the Gunyah hypervisor overlay resolves (wdog, arch_timer, soc).
+
+Also enable the display (CSOT VTDR6130 panel driver from the mainlining
+fork, ported to devm_drm_panel_alloc), the speaker and earpiece (two
+TFA9873 on PRIMARY_MI2S) and the macro camera (S5K5E9 driver from the
+mainlining fork), and enable simpledrm for the early framebuffer.
+---
+ ...qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch | 1147 +++++++++++++++++
+ ...-xiaomi-lisa-add-msm-id-and-board-id.patch |   87 ++
+ ...panel-Add-CSOT-VTDR6130-panel-driver.patch |  551 ++++++++
+ ...om-sm7325-xiaomi-lisa-enable-display.patch |   92 ++
+ ...omi-lisa-enable-speaker-and-earpiece.patch |  150 +++
+ ...-i2c-Add-S5K5E9-camera-sensor-driver.patch |  865 +++++++++++++
+ ...-xiaomi-lisa-enable-the-macro-camera.patch |   96 ++
+ .../linux-postmarketos-qcom-sc7280/APKBUILD   |   18 +-
+ .../config-postmarketos-qcom-sc7280.aarch64   |    4 +-
+ 9 files changed, 3007 insertions(+), 3 deletions(-)
+ create mode 100644 device/community/linux-postmarketos-qcom-sc7280/0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
+ create mode 100644 device/community/linux-postmarketos-qcom-sc7280/0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
+ create mode 100644 device/community/linux-postmarketos-qcom-sc7280/0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
+ create mode 100644 device/community/linux-postmarketos-qcom-sc7280/0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
+ create mode 100644 device/community/linux-postmarketos-qcom-sc7280/0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
+ create mode 100644 device/community/linux-postmarketos-qcom-sc7280/0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
+ create mode 100644 device/community/linux-postmarketos-qcom-sc7280/0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
+
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch b/device/community/linux-postmarketos-qcom-sc7280/0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
+new file mode 100644
+index 0000000..7542436
+--- /dev/null
++++ b/device/community/linux-postmarketos-qcom-sc7280/0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
+@@ -0,0 +1,1147 @@
++From 9935964e6e43ca768e740d1eb32f478a93043b05 Mon Sep 17 00:00:00 2001
++From: Oleksii Onchul <oleksiionchul@gmail.com>
++Date: Fri, 17 Jul 2026 15:22:18 +0200
++Subject: [PATCH] arm64: dts: qcom: sm7325: Add Xiaomi 11 Lite 5G NE
++
++Add initial support for the Xiaomi 11 Lite 5G NE, codenamed lisa.
++
++The supported hardware includes regulators, UFS, USB, GPU, remote
++processors, Wi-Fi, Bluetooth, touchscreen, flash LED, thermal sensors
++and the hardware buttons.
++
++Signed-off-by: Oleksii Onchul <oleksiionchul@gmail.com>
++Reviewed-by: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
++Link: https://patch.msgid.link/20260717132218.27007-3-oleksiionchul@gmail.com
++Signed-off-by: Bjorn Andersson <bjorn.andersson@oss.qualcomm.com>
++---
++ arch/arm64/boot/dts/qcom/Makefile             |    1 +
++ .../boot/dts/qcom/sm7325-xiaomi-lisa.dts      | 1108 +++++++++++++++++
++ 2 files changed, 1109 insertions(+)
++ create mode 100644 arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++
++diff --git a/arch/arm64/boot/dts/qcom/Makefile b/arch/arm64/boot/dts/qcom/Makefile
++index daf9e3f895b897..0b0647e44d47c7 100644
++--- a/arch/arm64/boot/dts/qcom/Makefile
+++++ b/arch/arm64/boot/dts/qcom/Makefile
++@@ -381,6 +381,7 @@ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-motorola-dubai.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-motorola-dubai-csot.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-motorola-dubai-tianma.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-nothing-spacewar.dtb
+++dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-xiaomi-lisa.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-xiaomi-taoyao.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-hdk.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-microsoft-surface-duo.dtb
++diff --git a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++new file mode 100644
++index 00000000000000..28a19c96c8c94a
++--- /dev/null
+++++ b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++@@ -0,0 +1,1108 @@
+++// SPDX-License-Identifier: BSD-3-Clause
+++/*
+++ * Copyright (c) 2024, Jens Reidel <adrian@travitia.xyz>
+++ * Copyright (c) 2026, Oleksii Onchul <oleksiionchul@gmail.com>
+++ */
+++
+++/dts-v1/;
+++
+++#include <dt-bindings/gpio/gpio.h>
+++#include <dt-bindings/iio/qcom,spmi-adc7-pm7325.h>
+++#include <dt-bindings/iio/qcom,spmi-adc7-pm8350b.h>
+++#include <dt-bindings/iio/qcom,spmi-adc7-pmk8350.h>
+++#include <dt-bindings/leds/common.h>
+++#include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
+++#include <dt-bindings/regulator/qcom,rpmh-regulator.h>
+++
+++#include "sm7325.dtsi"
+++#include "pm7325.dtsi"
+++#include "pm8350b.dtsi" /* PM7325B */
+++#include "pm8350c.dtsi" /* PM7350C */
+++#include "pmk8350.dtsi" /* PMK7325 */
+++
+++/* The following reserved memory regions have different addresses or sizes */
+++/delete-node/ &adsp_mem;
+++/delete-node/ &adsp_rpc_remote_heap_mem;
+++/delete-node/ &cdsp_mem;
+++/delete-node/ &rmtfs_mem;
+++
+++/ {
+++	model = "Xiaomi 11 Lite 5G NE";
+++	compatible = "xiaomi,lisa", "qcom,sm7325";
+++	chassis-type = "handset";
+++
+++	aliases {
+++		serial0 = &uart5;
+++		serial1 = &uart7;
+++	};
+++
+++	chosen {
+++		#address-cells = <2>;
+++		#size-cells = <2>;
+++		ranges;
+++
+++		stdout-path = "serial0:115200n8";
+++
+++		framebuffer0: framebuffer {
+++			compatible = "simple-framebuffer";
+++			memory-region = <&framebuffer_mem>;
+++			width = <1080>;
+++			height = <2400>;
+++			stride = <(1080 * 4)>;
+++			format = "a8r8g8b8";
+++
+++			clocks = <&gcc GCC_DISP_HF_AXI_CLK>,
+++				 <&dispcc DISP_CC_MDSS_MDP_CLK>,
+++				 <&dispcc DISP_CC_MDSS_BYTE0_CLK>,
+++				 <&dispcc DISP_CC_MDSS_BYTE0_INTF_CLK>,
+++				 <&dispcc DISP_CC_MDSS_PCLK0_CLK>,
+++				 <&dispcc DISP_CC_MDSS_VSYNC_CLK>;
+++			power-domains = <&dispcc DISP_CC_MDSS_CORE_GDSC>;
+++		};
+++	};
+++
+++	gpio-keys {
+++		compatible = "gpio-keys";
+++
+++		pinctrl-0 = <&volume_up_default>;
+++		pinctrl-names = "default";
+++
+++		key-volume-up {
+++			label = "Volume Up";
+++			gpios = <&pm7325_gpios 6 GPIO_ACTIVE_LOW>;
+++			linux,code = <KEY_VOLUMEUP>;
+++		};
+++	};
+++
+++	pmic-glink {
+++		compatible = "qcom,sm7325-pmic-glink",
+++			     "qcom,qcm6490-pmic-glink",
+++			     "qcom,pmic-glink";
+++
+++		#address-cells = <1>;
+++		#size-cells = <0>;
+++
+++		orientation-gpios = <&tlmm 140 GPIO_ACTIVE_HIGH>;
+++
+++		connector@0 {
+++			compatible = "usb-c-connector";
+++			reg = <0>;
+++			power-role = "dual";
+++			data-role = "dual";
+++
+++			ports {
+++				#address-cells = <1>;
+++				#size-cells = <0>;
+++
+++				port@0 {
+++					reg = <0>;
+++
+++					pmic_glink_hs_in: endpoint {
+++						remote-endpoint = <&usb_1_dwc3_hs>;
+++					};
+++				};
+++
+++				port@2 {
+++					reg = <2>;
+++
+++					pmic_glink_sbu: endpoint {
+++						remote-endpoint = <&fsa4480_sbu_mux>;
+++					};
+++				};
+++			};
+++		};
+++	};
+++
+++	reserved-memory {
+++		#address-cells = <2>;
+++		#size-cells = <2>;
+++		ranges;
+++
+++		cdsp_secure_heap_mem: cdsp-secure-heap@81800000 {
+++			reg = <0x0 0x81800000 0x0 0x1e00000>;
+++			no-map;
+++		};
+++
+++		adsp_mem: adsp@86700000 {
+++			reg = <0x0 0x86700000 0x0 0x4000000>;
+++			no-map;
+++		};
+++
+++		/* Mainline video_mem is downstream cvp_mem */
+++		real_video_mem: video@8ad00000 {
+++			reg = <0x0 0x8ad00000 0x0 0x500000>;
+++			no-map;
+++		};
+++
+++		ipa_gsi_mem: ipa-gsi@8b710000 {
+++			reg = <0x0 0x8b710000 0x0 0xa000>;
+++			no-map;
+++		};
+++
+++		cdsp_mem: cdsp@9c700000 {
+++			reg = <0x0 0x9c700000 0x0 0x1e00000>;
+++			no-map;
+++		};
+++
+++		adsp_rpc_remote_heap_mem: adsp-rpc-remote-heap@9e500000 {
+++			reg = <0x0 0x9e500000 0x0 0x800000>;
+++			no-map;
+++		};
+++
+++		ramoops@a9000000 {
+++			compatible = "ramoops";
+++			reg = <0x0 0xa9000000 0x0 0x200000>;
+++			pmsg-size = <0x200000>;
+++			ecc-size = <16>;
+++			mem-type = <2>;
+++		};
+++
+++		removed_mem: removed@c0000000 {
+++			reg = <0x0 0xc0000000 0x0 0x5100000>;
+++			no-map;
+++		};
+++
+++		pil_trustedvm_mem: pil-trustedvm-region@d0800000 {
+++			reg = <0x0 0xd0800000 0x0 0x76f7000>;
+++			no-map;
+++		};
+++
+++		qrtr_shmem: qrtr-shmem@d7ef7000 {
+++			reg = <0x0 0xd7ef7000 0x0 0x9000>;
+++			no-map;
+++		};
+++
+++		neuron_block_0_mem: neuron-block@d7f00000 {
+++			reg = <0x0 0xd7f00000 0x0 0x80000>;
+++			no-map;
+++		};
+++
+++		neuron_block_1_mem: neuron-block@d7f80000 {
+++			reg = <0x0 0xd7f80000 0x0 0x80000>;
+++			no-map;
+++		};
+++
+++		framebuffer_mem: framebuffer@e1000000 {
+++			reg = <0x0 0xe1000000 0x0 (1080 * 2400 * 4)>;
+++			no-map;
+++		};
+++
+++		rmtfs_mem: rmtfs@ef500000 {
+++			compatible = "qcom,rmtfs-mem";
+++			reg = <0x0 0xef500000 0x0 0x280000>;
+++			no-map;
+++
+++			qcom,client-id = <1>;
+++			qcom,vmid = <QCOM_SCM_VMID_MSS_MSA>,
+++				    <QCOM_SCM_VMID_NAV>;
+++		};
+++	};
+++
+++	vph_pwr: vph-pwr-regulator {
+++		compatible = "regulator-fixed";
+++		regulator-name = "vph_pwr";
+++		regulator-min-microvolt = <3700000>;
+++		regulator-max-microvolt = <3700000>;
+++	};
+++
+++	/* S2B is really ebi.lvl but it's there for supply map completeness sake. */
+++	vreg_s2b_0p7: smpa3-regulator {
+++		compatible = "regulator-fixed";
+++		regulator-name = "vreg_s2b_0p7";
+++
+++		regulator-min-microvolt = <700000>;
+++		regulator-max-microvolt = <700000>;
+++		regulator-always-on;
+++		vin-supply = <&vph_pwr>;
+++	};
+++};
+++
+++&apps_rsc {
+++	regulators-0 {
+++		compatible = "qcom,pm7325-rpmh-regulators";
+++		qcom,pmic-id = "b";
+++
+++		vdd-s1-supply = <&vph_pwr>;
+++		vdd-s2-supply = <&vph_pwr>;
+++		vdd-s7-supply = <&vph_pwr>;
+++		vdd-s8-supply = <&vph_pwr>;
+++
+++		vdd-l1-l4-l12-l15-supply = <&vreg_s7b_0p952>;
+++		vdd-l2-l7-supply = <&vreg_bob>;
+++		vdd-l3-supply = <&vreg_s2b_0p7>;
+++		vdd-l5-supply = <&vreg_s2b_0p7>;
+++		vdd-l6-l9-l10-supply = <&vreg_s8b_1p256>;
+++		vdd-l8-supply = <&vreg_s7b_0p952>;
+++		vdd-l11-l17-l18-l19-supply = <&vreg_s1b_1p856>;
+++		vdd-l13-supply = <&vreg_s7b_0p952>;
+++		vdd-l14-l16-supply = <&vreg_s8b_1p256>;
+++
+++		/*
+++		 * S2, L4-L5 are ARCs:
+++		 * S2 - ebi.lvl,
+++		 * L4 - lmx.lvl,
+++		 * l5 - lcx.lvl.
+++		 *
+++		 * L10 are unused.
+++		 */
+++
+++		vdd19_pmu_rfa_i:
+++		vreg_s1b_1p856: smps1 {
+++			regulator-name = "vreg_s1b_1p856";
+++			regulator-min-microvolt = <1840000>;
+++			regulator-max-microvolt = <2040000>;
+++		};
+++
+++		vreg_s7b_0p952: smps7 {
+++			regulator-name = "vreg_s7b_0p952";
+++			regulator-min-microvolt = <535000>;
+++			regulator-max-microvolt = <1120000>;
+++		};
+++
+++		vdd13_pmu_rfa_i:
+++		vreg_s8b_1p256: smps8 {
+++			regulator-name = "vreg_s8b_1p256";
+++			regulator-min-microvolt = <1200000>;
+++			regulator-max-microvolt = <1500000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_RET>;
+++		};
+++
+++		vreg_l1b_0p912: ldo1 {
+++			regulator-name = "vreg_l1b_0p912";
+++			regulator-min-microvolt = <825000>;
+++			regulator-max-microvolt = <925000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vdd_a_usbhs_3p1:
+++		vreg_l2b_3p072: ldo2 {
+++			regulator-name = "vreg_l2b_3p072";
+++			regulator-min-microvolt = <2700000>;
+++			regulator-max-microvolt = <3544000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l3b_0p6: ldo3 {
+++			regulator-name = "vreg_l3b_0p6";
+++			regulator-min-microvolt = <312000>;
+++			regulator-max-microvolt = <910000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vdd_a_dsi_0_1p2:
+++		vdd_a_ufs_0_1p2:
+++		vreg_l6b_1p2: ldo6 {
+++			regulator-name = "vreg_l6b_1p2";
+++			regulator-min-microvolt = <1140000>;
+++			regulator-max-microvolt = <1260000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++			regulator-allow-set-load;
+++			regulator-allowed-modes = <RPMH_REGULATOR_MODE_LPM
+++						   RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l7b_2p96: ldo7 {
+++			regulator-name = "vreg_l7b_2p96";
+++			/* Constrained for UFS VCC, at least until UFS driver scales voltage */
+++			regulator-min-microvolt = <2952000>;
+++			regulator-max-microvolt = <2952000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++			regulator-allow-set-load;
+++			regulator-allowed-modes = <RPMH_REGULATOR_MODE_LPM
+++						   RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l8b_0p904: ldo8 {
+++			regulator-name = "vreg_l8b_0p904";
+++			regulator-min-microvolt = <870000>;
+++			regulator-max-microvolt = <970000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l9b_1p2: ldo9 {
+++			regulator-name = "vreg_l9b_1p2";
+++			regulator-min-microvolt = <1200000>;
+++			regulator-max-microvolt = <1304000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++			regulator-allow-set-load;
+++			regulator-allowed-modes = <RPMH_REGULATOR_MODE_LPM
+++						   RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l11b_1p776: ldo11 {
+++			regulator-name = "vreg_l11b_1p776";
+++			regulator-min-microvolt = <1504000>;
+++			regulator-max-microvolt = <2000000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l12b_0p8: ldo12 {
+++			regulator-name = "vreg_l12b_0p8";
+++			regulator-min-microvolt = <751000>;
+++			regulator-max-microvolt = <824000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l13b_0p8: ldo13 {
+++			regulator-name = "vreg_l13b_0p8";
+++			regulator-min-microvolt = <530000>;
+++			regulator-max-microvolt = <824000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l14b_1p2: ldo14 {
+++			regulator-name = "vreg_l14b_1p2";
+++			regulator-min-microvolt = <1080000>;
+++			regulator-max-microvolt = <1304000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l15b_0p88: ldo15 {
+++			regulator-name = "vreg_l15b_0p88";
+++			regulator-min-microvolt = <765000>;
+++			regulator-max-microvolt = <1020000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l16b_1p2: ldo16 {
+++			regulator-name = "vreg_l16b_1p2";
+++			regulator-min-microvolt = <1100000>;
+++			regulator-max-microvolt = <1300000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l17b_1p8: ldo17 {
+++			regulator-name = "vreg_l17b_1p8";
+++			regulator-min-microvolt = <1700000>;
+++			regulator-max-microvolt = <1900000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l18b_1p8: ldo18 {
+++			regulator-name = "vreg_l18b_1p8";
+++			regulator-min-microvolt = <1800000>;
+++			regulator-max-microvolt = <2000000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l19b_1p8: ldo19 {
+++			regulator-name = "vreg_l19b_1p8";
+++			regulator-min-microvolt = <1800000>;
+++			regulator-max-microvolt = <2000000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++	};
+++
+++	regulators-1 {
+++		compatible = "qcom,pm8350c-rpmh-regulators";
+++		qcom,pmic-id = "c";
+++
+++		vdd-s1-supply = <&vph_pwr>;
+++		vdd-s2-supply = <&vph_pwr>;
+++		vdd-s5-supply = <&vph_pwr>;
+++		vdd-s7-supply = <&vph_pwr>;
+++		vdd-s9-supply = <&vph_pwr>;
+++		vdd-s10-supply = <&vph_pwr>;
+++
+++		vdd-l1-l12-supply = <&vreg_s1b_1p856>;
+++		vdd-l2-l8-supply = <&vreg_s1b_1p856>;
+++		vdd-l3-l4-l5-l7-l13-supply = <&vreg_bob>;
+++		vdd-l6-l9-l11-supply = <&vreg_bob>;
+++		vdd-l10-supply = <&vreg_s7b_0p952>;
+++
+++		vdd-bob-supply = <&vph_pwr>;
+++
+++		/*
+++		 * S2, S5, S7, S10 are ARCs:
+++		 * S2 - cx.lvl,
+++		 * S5 - mss.lvl,
+++		 * S7 - gfx.lvl,
+++		 * S10 - mx.lvl.
+++		 */
+++
+++		vreg_s1c_2p2: smps1 {
+++			regulator-name = "vreg_s1c_2p2";
+++			regulator-min-microvolt = <2190000>;
+++			regulator-max-microvolt = <2210000>;
+++		};
+++
+++		vreg_s9c_0p676: smps9 {
+++			regulator-name = "vreg_s9c_0p676";
+++			regulator-min-microvolt = <1010000>;
+++			regulator-max-microvolt = <1170000>;
+++		};
+++
+++		vdd_a_usbhs_1p8:
+++		vdd_qfprom:
+++		vreg_l1c_1p8: ldo1 {
+++			regulator-name = "vreg_l1c_1p8";
+++			regulator-min-microvolt = <1800000>;
+++			regulator-max-microvolt = <1980000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l2c_1p8: ldo2 {
+++			regulator-name = "vreg_l2c_1p8";
+++			regulator-min-microvolt = <1620000>;
+++			regulator-max-microvolt = <1980000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l4c_1p8_3p0: ldo4 {
+++			regulator-name = "vreg_l4c_1p8_3p0";
+++			regulator-min-microvolt = <1620000>;
+++			regulator-max-microvolt = <3300000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l5c_1p8_3p0: ldo5 {
+++			regulator-name = "vreg_l5c_1p8_3p0";
+++			regulator-min-microvolt = <1620000>;
+++			regulator-max-microvolt = <3300000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l6c_2p96: ldo6 {
+++			regulator-name = "vreg_l6c_2p96";
+++			regulator-min-microvolt = <1650000>;
+++			regulator-max-microvolt = <3544000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l7c_3p0: ldo7 {
+++			regulator-name = "vreg_l7c_3p0";
+++			regulator-min-microvolt = <3000000>;
+++			regulator-max-microvolt = <3544000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l8c_1p8: ldo8 {
+++			regulator-name = "vreg_l8c_1p8";
+++			regulator-min-microvolt = <1620000>;
+++			regulator-max-microvolt = <2000000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++			regulator-always-on;
+++		};
+++
+++		vreg_l9c_2p96: ldo9 {
+++			regulator-name = "vreg_l9c_2p96";
+++			regulator-min-microvolt = <2700000>;
+++			regulator-max-microvolt = <3544000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vdd_a_dsi_0_0p9:
+++		vdd_a_dsi_0_pll_0p9:
+++		vdd_a_ufs_0_core:
+++		vdd_a_usbhs_core:
+++		vreg_l10c_0p88: ldo10 {
+++			regulator-name = "vreg_l10c_0p88";
+++			regulator-min-microvolt = <720000>;
+++			regulator-max-microvolt = <1050000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++			regulator-allow-set-load;
+++			regulator-allowed-modes = <RPMH_REGULATOR_MODE_LPM
+++						   RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l11c_2p8: ldo11 {
+++			regulator-name = "vreg_l11c_2p8";
+++			regulator-min-microvolt = <2800000>;
+++			regulator-max-microvolt = <3544000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l12c_1p8: ldo12 {
+++			regulator-name = "vreg_l12c_1p8";
+++			regulator-min-microvolt = <1650000>;
+++			regulator-max-microvolt = <2000000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vreg_l13c_3p0: ldo13 {
+++			regulator-name = "vreg_l13c_3p0";
+++			regulator-min-microvolt = <2700000>;
+++			regulator-max-microvolt = <3544000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
+++		};
+++
+++		vdd_flash:
+++		vdd_iris_rgb:
+++		vdd_mic_bias:
+++		vreg_bob: bob {
+++			regulator-name = "vreg_bob";
+++			regulator-min-microvolt = <3008000>;
+++			regulator-max-microvolt = <3960000>;
+++			regulator-initial-mode = <RPMH_REGULATOR_MODE_AUTO>;
+++		};
+++	};
+++};
+++
+++&gcc {
+++	protected-clocks = <GCC_CFG_NOC_LPASS_CLK>,
+++			   <GCC_MSS_CFG_AHB_CLK>,
+++			   <GCC_MSS_OFFLINE_AXI_CLK>,
+++			   <GCC_MSS_Q6SS_BOOT_CLK_SRC>,
+++			   <GCC_MSS_Q6_MEMNOC_AXI_CLK>,
+++			   <GCC_MSS_SNOC_AXI_CLK>,
+++			   <GCC_QSPI_CNOC_PERIPH_AHB_CLK>,
+++			   <GCC_QSPI_CORE_CLK>,
+++			   <GCC_QSPI_CORE_CLK_SRC>,
+++			   <GCC_SEC_CTRL_CLK_SRC>,
+++			   <GCC_WPSS_AHB_BDG_MST_CLK>,
+++			   <GCC_WPSS_AHB_CLK>,
+++			   <GCC_WPSS_RSCP_CLK>;
+++};
+++
+++&gpi_dma0 {
+++	status = "okay";
+++};
+++
+++&gpi_dma1 {
+++	status = "okay";
+++};
+++
+++&gpu {
+++	status = "okay";
+++};
+++
+++&gpu_zap_shader {
+++	firmware-name = "qcom/sm7325/xiaomi/lisa/a660_zap.mbn";
+++};
+++
+++&i2c1 {
+++	clock-frequency = <100000>;
+++
+++	status = "okay";
+++
+++	pm8008: pmic@8 {
+++		compatible = "qcom,pm8008";
+++		reg = <0x8>;
+++
+++		interrupts-extended = <&tlmm 25 IRQ_TYPE_EDGE_RISING>;
+++		reset-gpios = <&pm8350c_gpios 3 GPIO_ACTIVE_LOW>;
+++
+++		vdd-l1-l2-supply = <&vreg_s8b_1p256>;
+++		vdd-l3-l4-supply = <&vreg_bob>;
+++		vdd-l5-supply = <&vreg_s1b_1p856>;
+++		vdd-l6-supply = <&vreg_bob>;
+++		vdd-l7-supply = <&vreg_bob>;
+++
+++		pinctrl-names = "default";
+++		pinctrl-0 = <&pm8008_int_default>, <&pm8008_reset_n_default>;
+++
+++		gpio-controller;
+++		#gpio-cells = <2>;
+++		gpio-ranges = <&pm8008 0 0 2>;
+++
+++		interrupt-controller;
+++		#interrupt-cells = <2>;
+++
+++		#thermal-sensor-cells = <0>;
+++
+++		regulators {
+++			vreg_l1p: ldo1 {
+++				regulator-name = "vreg_l1p";
+++				regulator-min-microvolt = <1000000>;
+++				regulator-max-microvolt = <1200000>;
+++			};
+++
+++			vreg_l2p: ldo2 {
+++				regulator-name = "vreg_l2p";
+++				regulator-min-microvolt = <950000>;
+++				regulator-max-microvolt = <1200000>;
+++			};
+++
+++			vreg_l3p: ldo3 {
+++				regulator-name = "vreg_l3p";
+++				regulator-min-microvolt = <2700000>;
+++				regulator-max-microvolt = <3000000>;
+++			};
+++
+++			vreg_l4p: ldo4 {
+++				regulator-name = "vreg_l4p";
+++				regulator-min-microvolt = <2700000>;
+++				regulator-max-microvolt = <2900000>;
+++			};
+++
+++			vreg_l5p: ldo5 {
+++				regulator-name = "vreg_l5p";
+++				regulator-min-microvolt = <1700000>;
+++				regulator-max-microvolt = <1900000>;
+++			};
+++
+++			vreg_l6p: ldo6 {
+++				regulator-name = "vreg_l6p";
+++				regulator-min-microvolt = <2700000>;
+++				regulator-max-microvolt = <2900000>;
+++			};
+++
+++			vreg_l7p: ldo7 {
+++				regulator-name = "vreg_l7p";
+++				regulator-min-microvolt = <2700000>;
+++				regulator-max-microvolt = <3000000>;
+++			};
+++		};
+++	};
+++
+++	fsa4480: typec-mux@42 {
+++		compatible = "fcs,fsa4480";
+++		reg = <0x42>;
+++
+++		vcc-supply = <&vreg_bob>;
+++		mode-switch;
+++		orientation-switch;
+++
+++		port {
+++			fsa4480_sbu_mux: endpoint {
+++				remote-endpoint = <&pmic_glink_sbu>;
+++			};
+++		};
+++	};
+++};
+++
+++&i2c4 {
+++	clock-frequency = <100000>;
+++
+++	status = "okay";
+++
+++	/* awinic,aw8624_haptic @ 5a */
+++};
+++
+++&ipa {
+++	firmware-name = "qcom/sm7325/xiaomi/lisa/ipa_fws.mbn";
+++
+++	status = "okay";
+++};
+++
+++&pm7325_gpios {
+++	volume_up_default: volume-up-default-state {
+++		pins = "gpio6";
+++		function = PMIC_GPIO_FUNC_NORMAL;
+++		power-source = <1>;
+++		bias-pull-up;
+++		input-enable;
+++	};
+++};
+++
+++&pm8350c_gpios {
+++	pm8008_reset_n_default: pm8008-reset-n-default-state {
+++		pins = "gpio3";
+++		function = PMIC_GPIO_FUNC_NORMAL;
+++		bias-pull-down;
+++	};
+++};
+++
+++&pm8350c_flash {
+++	status = "okay";
+++
+++	led-0 {
+++		function = LED_FUNCTION_FLASH;
+++		color = <LED_COLOR_ID_WHITE>;
+++		led-sources = <1>, <4>;
+++		led-max-microamp = <500000>;
+++		flash-max-microamp = <1500000>;
+++		flash-max-timeout-us = <1280000>;
+++	};
+++};
+++
+++&pmk8350_adc_tm {
+++	status = "okay";
+++
+++	/* PMK8350 */
+++	xo-therm@0 {
+++		reg = <0>;
+++		io-channels = <&pmk8350_vadc PMK8350_ADC7_AMUX_THM1_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++
+++	/* PM7325 */
+++	quiet-therm@1 {
+++		reg = <1>;
+++		io-channels = <&pmk8350_vadc PM7325_ADC7_AMUX_THM1_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++
+++	cam-flash-therm@2 {
+++		reg = <2>;
+++		io-channels = <&pmk8350_vadc PM7325_ADC7_AMUX_THM2_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++
+++	sdm-skin-therm@3 {
+++		reg = <3>;
+++		io-channels = <&pmk8350_vadc PM7325_ADC7_AMUX_THM3_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++
+++	wide-rfc-therm@4 {
+++		reg = <4>;
+++		io-channels = <&pmk8350_vadc PM7325_ADC7_AMUX_THM4_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++
+++	5g-pa-therm@5 {
+++		reg = <5>;
+++		io-channels = <&pmk8350_vadc PM7325_ADC7_AMUX_THM5_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++
+++	4g-pa-therm@6 {
+++		reg = <6>;
+++		io-channels = <&pmk8350_vadc PM7325_ADC7_GPIO3_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++
+++	/* PM8350B */
+++	chg-skin-therm@7 {
+++		reg = <7>;
+++		io-channels = <&pmk8350_vadc PM8350B_ADC7_GPIO2_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time-us = <200>;
+++	};
+++};
+++
+++&pmk8350_rtc {
+++	status = "okay";
+++};
+++
+++&pmk8350_vadc {
+++	/* PMK8350 */
+++	channel@44 {
+++		reg = <PMK8350_ADC7_AMUX_THM1_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pmk8350_xo_therm";
+++	};
+++
+++	/* PM7325 */
+++	channel@144 {
+++		reg = <PM7325_ADC7_AMUX_THM1_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pm7325_quiet_therm";
+++	};
+++
+++	channel@145 {
+++		reg = <PM7325_ADC7_AMUX_THM2_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pm7325_cam_flash_therm";
+++	};
+++
+++	channel@146 {
+++		reg = <PM7325_ADC7_AMUX_THM3_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pm7325_sdm_skin_therm";
+++	};
+++
+++	channel@147 {
+++		reg = <PM7325_ADC7_AMUX_THM4_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pm7325_wide_rfc_therm";
+++	};
+++
+++	channel@148 {
+++		reg = <PM7325_ADC7_AMUX_THM5_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pm7325_5g_pa_therm";
+++	};
+++
+++	channel@14c {
+++		reg = <PM7325_ADC7_GPIO3_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pm7325_4g_pa_therm";
+++	};
+++
+++	/* PM8350B */
+++	channel@34b {
+++		reg = <PM8350B_ADC7_GPIO2_100K_PU>;
+++		qcom,ratiometric;
+++		qcom,hw-settle-time = <200>;
+++		qcom,pre-scaling = <1 1>;
+++		label = "pm8350b_chg_skin_therm";
+++	};
+++};
+++
+++&pon_pwrkey {
+++	status = "okay";
+++};
+++
+++&pon_resin {
+++	linux,code = <KEY_VOLUMEDOWN>;
+++
+++	status = "okay";
+++};
+++
+++&qfprom {
+++	vcc-supply = <&vdd_qfprom>;
+++};
+++
+++&qup_spi13_cs {
+++	drive-strength = <6>;
+++	bias-disable;
+++};
+++
+++&qup_spi13_data_clk {
+++	drive-strength = <6>;
+++	bias-disable;
+++};
+++
+++&qup_uart5_rx {
+++	drive-strength = <2>;
+++	bias-disable;
+++};
+++
+++&qup_uart5_tx {
+++	drive-strength = <2>;
+++	bias-disable;
+++};
+++
+++&qupv3_id_0 {
+++	status = "okay";
+++};
+++
+++&qupv3_id_1 {
+++	status = "okay";
+++};
+++
+++&remoteproc_adsp {
+++	firmware-name = "qcom/sm7325/xiaomi/lisa/adsp.mbn";
+++
+++	status = "okay";
+++};
+++
+++&remoteproc_cdsp {
+++	firmware-name = "qcom/sm7325/xiaomi/lisa/cdsp.mbn";
+++
+++	status = "okay";
+++};
+++
+++&remoteproc_mpss {
+++	firmware-name = "qcom/sm7325/xiaomi/lisa/modem.mbn";
+++
+++	status = "okay";
+++};
+++
+++&remoteproc_wpss {
+++	firmware-name = "qcom/sm7325/xiaomi/lisa/wpss.mbn";
+++
+++	status = "okay";
+++};
+++
+++&spi13 {
+++	status = "okay";
+++
+++	touchscreen@0 {
+++		compatible = "goodix,gt9897";
+++		reg = <0>;
+++		spi-max-frequency = <6000000>;
+++
+++		interrupts-extended = <&tlmm 81 IRQ_TYPE_LEVEL_LOW>;
+++
+++		reset-gpios = <&tlmm 105 GPIO_ACTIVE_LOW>;
+++
+++		avdd-supply = <&vreg_l7c_3p0>;
+++		vddio-supply = <&vreg_l2c_1p8>;
+++
+++		pinctrl-0 = <&touchscreen_default>;
+++		pinctrl-names = "default";
+++
+++		touchscreen-size-x = <1080>;
+++		touchscreen-size-y = <2400>;
+++	};
+++};
+++
+++&tlmm {
+++	gpio-reserved-ranges = <32 2>, /* SMB1394 (SPMI) */
+++			       <48 4>, /* Presumably NFC SE */
+++			       <56 4>; /* Presumably fingerprint reader */
+++
+++	qup_uart7_sleep_cts: qup-uart7-sleep-cts-state {
+++		pins = "gpio28";
+++		function = "gpio";
+++		/*
+++		 * Configure a bias-bus-hold on CTS to lower power
+++		 * usage when Bluetooth is turned off. Bus hold will
+++		 * maintain a low power state regardless of whether
+++		 * the Bluetooth module drives the pin in either
+++		 * direction or leaves the pin fully unpowered.
+++		 */
+++		bias-bus-hold;
+++	};
+++
+++	qup_uart7_sleep_rts: qup-uart7-sleep-rts-state {
+++		pins = "gpio29";
+++		function = "gpio";
+++		/*
+++		 * Configure pull-down on RTS. As RTS is active low
+++		 * signal, pull it low to indicate the BT SoC that it
+++		 * can wakeup the system anytime from suspend state by
+++		 * pulling RX low (by sending wakeup bytes).
+++		 */
+++		bias-pull-down;
+++	};
+++
+++	qup_uart7_sleep_tx: qup-uart7-sleep-tx-state {
+++		pins = "gpio30";
+++		function = "gpio";
+++		/*
+++		 * Configure pull-up on TX when it isn't actively driven
+++		 * to prevent BT SoC from receiving garbage during sleep.
+++		 */
+++		bias-pull-up;
+++	};
+++
+++	qup_uart7_sleep_rx: qup-uart7-sleep-rx-state {
+++		pins = "gpio31";
+++		function = "gpio";
+++		/*
+++		 * Configure a pull-up on RX. This is needed to avoid
+++		 * garbage data when the TX pin of the Bluetooth module
+++		 * is floating which may cause spurious wakeups.
+++		 */
+++		bias-pull-up;
+++	};
+++
+++	bluetooth_enable_default: bluetooth-enable-default-state {
+++		pins = "gpio85";
+++		function = "gpio";
+++		output-low;
+++		bias-disable;
+++	};
+++
+++	sw_ctrl_default: sw-ctrl-default-state {
+++		pins = "gpio86";
+++		function = "gpio";
+++		bias-pull-down;
+++	};
+++
+++	touchscreen_default: touchscreen-default-state {
+++		pins = "gpio81", "gpio105";
+++		function = "gpio";
+++		drive-strength = <8>;
+++		bias-pull-up;
+++	};
+++
+++	pm8008_int_default: pm8008-int-default-state {
+++		pins = "gpio25";
+++		function = "gpio";
+++		drive-strength = <2>;
+++		bias-disable;
+++	};
+++};
+++
+++&uart5 {
+++	compatible = "qcom,geni-debug-uart";
+++
+++	status = "okay";
+++};
+++
+++&uart7 {
+++	/delete-property/interrupts;
+++	interrupts-extended = <&intc GIC_SPI 608 IRQ_TYPE_LEVEL_HIGH>,
+++			      <&tlmm 31 IRQ_TYPE_EDGE_FALLING>;
+++
+++	pinctrl-1 = <&qup_uart7_sleep_cts>,
+++		    <&qup_uart7_sleep_rts>,
+++		    <&qup_uart7_sleep_tx>,
+++		    <&qup_uart7_sleep_rx>;
+++	pinctrl-names = "default", "sleep";
+++
+++	status = "okay";
+++
+++	bluetooth: bluetooth {
+++		compatible = "qcom,wcn6750-bt";
+++
+++		pinctrl-0 = <&bluetooth_enable_default>, <&sw_ctrl_default>;
+++		pinctrl-names = "default";
+++
+++		enable-gpios = <&tlmm 85 GPIO_ACTIVE_HIGH>;
+++		swctrl-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>;
+++
+++		vddio-supply = <&vreg_l19b_1p8>;
+++		vddaon-supply = <&vreg_s7b_0p952>;
+++		vddbtcxmx-supply = <&vreg_s7b_0p952>;
+++		vddrfacmn-supply = <&vreg_s7b_0p952>;
+++		vddrfa0p8-supply = <&vreg_s7b_0p952>;
+++		vddrfa1p2-supply = <&vdd13_pmu_rfa_i>;
+++		vddrfa1p7-supply = <&vdd19_pmu_rfa_i>;
+++		vddrfa2p2-supply = <&vreg_s1c_2p2>;
+++		vddasd-supply = <&vreg_l11c_2p8>;
+++		max-speed = <3200000>;
+++
+++		qcom,local-bd-address-broken;
+++	};
+++};
+++
+++&ufs_mem_hc {
+++	reset-gpios = <&tlmm 175 GPIO_ACTIVE_LOW>;
+++
+++	vcc-supply = <&vreg_l7b_2p96>;
+++	vcc-max-microamp = <800000>;
+++	/*
+++	 * Technically l9b enables an eLDO (supplied by s1b) which then powers
+++	 * VCCQ2 of the UFS.
+++	 */
+++	vccq-supply = <&vreg_l9b_1p2>;
+++	vccq-max-microamp = <900000>;
+++
+++	status = "okay";
+++};
+++
+++&ufs_mem_phy {
+++	vdda-phy-supply = <&vdd_a_ufs_0_core>;
+++	vdda-pll-supply = <&vdd_a_ufs_0_1p2>;
+++
+++	status = "okay";
+++};
+++
+++&usb_1 {
+++	qcom,select-utmi-as-pipe-clk;
+++
+++	maximum-speed = "high-speed";
+++	phys = <&usb_1_hsphy>;
+++	phy-names = "usb2-phy";
+++
+++	status = "okay";
+++};
+++
+++&usb_1_dwc3_hs {
+++	remote-endpoint = <&pmic_glink_hs_in>;
+++};
+++
+++&usb_1_hsphy {
+++	vdda-pll-supply = <&vdd_a_usbhs_core>;
+++	vdda18-supply = <&vdd_a_usbhs_1p8>;
+++	vdda33-supply = <&vdd_a_usbhs_3p1>;
+++
+++	status = "okay";
+++};
+++
+++&venus {
+++	firmware-name = "qcom/sm7325/xiaomi/lisa/vpu20_1v.mbn";
+++
+++	status = "okay";
+++};
+++
+++&wifi {
+++	status = "okay";
+++};
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch b/device/community/linux-postmarketos-qcom-sc7280/0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
+new file mode 100644
+index 0000000..1b93415
+--- /dev/null
++++ b/device/community/linux-postmarketos-qcom-sc7280/0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
+@@ -0,0 +1,87 @@
++From: Mateus Seiboth <mateusseiboth12@gmail.com>
++Subject: [PATCH] arm64: dts: qcom: sm7325-xiaomi-lisa: make the stock Xiaomi ABL boot it
++
++The stock ABL (HyperOS 2) only boots a DTB that has qcom,msm-id and
++qcom,board-id, a /reserved-memory/splash_region node with the stock size,
++the mem-offline and Android fstab nodes it updates, and the __symbols__
++the Gunyah hypervisor overlay resolves (wdog, arch_timer, soc).
++---
++--- a/arch/arm64/boot/dts/qcom/Makefile
+++++ b/arch/arm64/boot/dts/qcom/Makefile
++@@ -352,6 +352,8 @@
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-motorola-dubai-tianma.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-nothing-spacewar.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-xiaomi-lisa.dtb
+++# The Xiaomi ABL applies dtbo/hypervisor overlays that need __symbols__
+++DTC_FLAGS_sm7325-xiaomi-lisa := -@
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm7325-xiaomi-taoyao.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-hdk.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-microsoft-surface-duo.dtb
++--- a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
+++++ b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++@@ -31,6 +31,13 @@
++ 	compatible = "xiaomi,lisa", "qcom,sm7325";
++ 	chassis-type = "handset";
++ 
+++	/*
+++	 * The Xiaomi ABL picks the DTB by these ids. Values from the stock
+++	 * yupik DTB and the lisa dtbo entry.
+++	 */
+++	qcom,msm-id = <475 0x10000>, <515 0x10000>;
+++	qcom,board-id = <0x1000b 0>;
+++
++ 	aliases {
++ 		serial0 = &uart5;
++ 		serial1 = &uart7;
++@@ -182,8 +189,12 @@
++ 			no-map;
++ 		};
++ 
++-		framebuffer_mem: framebuffer@e1000000 {
++-			reg = <0x0 0xe1000000 0x0 (1080 * 2400 * 4)>;
+++		/*
+++		 * The ABL refuses to boot unless it finds the splash region under
+++		 * this exact path and with the stock size.
+++		 */
+++		framebuffer_mem: splash_region {
+++			reg = <0x0 0xe1000000 0x0 0x2300000>;
++ 			no-map;
++ 		};
++ 
++@@ -1106,3 +1117,36 @@
++ &wifi {
++ 	status = "okay";
++ };
+++
+++/*
+++ * Nodes and labels the Xiaomi ABL touches before handing over to the kernel:
+++ * it updates mem-offline and the Android fstab, and the Gunyah hypervisor
+++ * overlay targets &wdog, &arch_timer and &soc.
+++ */
+++/ {
+++	mem-offline {
+++		compatible = "qcom,mem-offline";
+++		offline-sizes = <0x1 0x40000000 0x0 0x40000000>,
+++				<0x1 0xc0000000 0x0 0x80000000>,
+++				<0x2 0xc0000000 0x1 0x40000000>;
+++		granule = <512>;
+++	};
+++
+++	firmware {
+++		android {
+++			compatible = "android,firmware";
+++
+++			fstab {
+++				compatible = "android,fstab";
+++			};
+++		};
+++	};
+++
+++	arch_timer: timer {
+++	};
+++};
+++
+++&soc {
+++	wdog: watchdog@17c10000 {
+++	};
+++};
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch b/device/community/linux-postmarketos-qcom-sc7280/0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
+new file mode 100644
+index 0000000..ae4db2d
+--- /dev/null
++++ b/device/community/linux-postmarketos-qcom-sc7280/0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
+@@ -0,0 +1,551 @@
++From: Jens Reidel <adrian@travitia.xyz>
++Subject: [PATCH] drm/panel: Add CSOT VTDR6130 panel driver
++
++From https://github.com/mainlining/linux/commit/e9bf9a17b6, ported to
++devm_drm_panel_alloc() since drm_panel_init() is gone in 7.2, and with
++the regulator consumer header included explicitly.
++---
++--- a/drivers/gpu/drm/panel/Kconfig
+++++ b/drivers/gpu/drm/panel/Kconfig
++@@ -116,6 +116,18 @@
++ 	  Say Y here if you want to enable support for ChipWealth
++ 	  CH13726A-based display panels.
++ 
+++config DRM_PANEL_CSOT_VTDR6130
+++	tristate "CSOT VTDR6130 panel"
+++	depends on OF
+++	depends on DRM_MIPI_DSI
+++	depends on BACKLIGHT_CLASS_DEVICE
+++	select DRM_DISPLAY_DSC_HELPER
+++	select DRM_DISPLAY_HELPER
+++	help
+++	  Say Y here if you want to enable support for CSOT VTDR6130 AMOLED
+++	  display panels, such as the one found in the Xiaomi 11 Lite 5G NE
+++	  smartphone.
+++
++ config DRM_PANEL_EBBG_FT8719
++ 	tristate "EBBG FT8719 panel driver"
++ 	depends on GPIOLIB
++--- a/drivers/gpu/drm/panel/Makefile
+++++ b/drivers/gpu/drm/panel/Makefile
++@@ -10,6 +10,7 @@
++ obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_LL2) += panel-boe-tv101wum-ll2.o
++ obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_NL6) += panel-boe-tv101wum-nl6.o
++ obj-$(CONFIG_DRM_PANEL_CHIPWEALTH_CH13726A) += panel-chipwealth-ch13726a.o
+++obj-$(CONFIG_DRM_PANEL_CSOT_VTDR6130) += panel-csot-vtdr6130.o
++ obj-$(CONFIG_DRM_PANEL_DSI_CM) += panel-dsi-cm.o
++ obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
++ obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
++--- a/drivers/gpu/drm/panel/panel-csot-vtdr6130.c
+++++ b/drivers/gpu/drm/panel/panel-csot-vtdr6130.c
++@@ -0,0 +1,510 @@
+++// SPDX-License-Identifier: GPL-2.0-only
+++/*
+++ * Generated with linux-mdss-dsi-panel-driver-generator from vendor device tree:
+++ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+++ * Copyright (c) 2025, Jens Reidel <adrian@travitia.xyz>
+++ */
+++
+++#include <linux/backlight.h>
+++#include <linux/delay.h>
+++#include <linux/gpio/consumer.h>
+++#include <linux/module.h>
+++#include <linux/of.h>
+++#include <linux/regulator/consumer.h>
+++
+++#include <video/mipi_display.h>
+++
+++#include <drm/display/drm_dsc.h>
+++#include <drm/display/drm_dsc_helper.h>
+++#include <drm/drm_mipi_dsi.h>
+++#include <drm/drm_modes.h>
+++#include <drm/drm_panel.h>
+++#include <drm/drm_probe_helper.h>
+++
+++struct csot_vtdr6130 {
+++	struct drm_panel panel;
+++	struct mipi_dsi_device *dsi;
+++	struct drm_dsc_config dsc;
+++	struct gpio_desc *reset_gpio;
+++	struct regulator_bulk_data *supplies;
+++};
+++
+++static const struct regulator_bulk_data csot_vtdr6130_supplies[] = {
+++	{ .supply = "vdd" }, /* 3p0 */
+++	{ .supply = "vddio" }, /* 1p8 */
+++	{ .supply = "dvdd" }, /* 1p2 */
+++};
+++
+++static inline struct csot_vtdr6130 *to_csot_vtdr6130(struct drm_panel *panel)
+++{
+++	return container_of(panel, struct csot_vtdr6130, panel);
+++}
+++
+++static void csot_vtdr6130_reset(struct csot_vtdr6130 *ctx)
+++{
+++	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+++	usleep_range(11000, 12000);
+++	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
+++	usleep_range(1000, 2000);
+++	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+++	usleep_range(11000, 12000);
+++}
+++
+++static int csot_vtdr6130_on(struct csot_vtdr6130 *ctx)
+++{
+++	struct mipi_dsi_device *dsi = ctx->dsi;
+++	struct mipi_dsi_multi_context dsi_ctx = { .dsi = dsi };
+++
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xba, 0x01, 0xe6, 0x00, 0x10,
+++				     0x00, 0x30, 0x00, 0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb2, 0x58);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x02);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb2, 0x0c, 0x0c);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xbe, 0x0e, 0x0b, 0x14, 0x13);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x05);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xbe, 0x8a);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc0, 0x66);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x08);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb5, 0x32);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x07);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc0, 0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc1, 0x30, 0x0f, 0x04, 0xc9,
+++				     0x0f, 0x81, 0xee, 0xc6, 0x3f, 0xfb, 0xb3,
+++				     0x6a, 0x3f, 0xf6, 0xd1, 0x42, 0x80, 0x00,
+++				     0xf7, 0x33, 0xb1, 0x00, 0x18, 0x00, 0x00,
+++				     0x8b, 0x23, 0x33, 0xc0, 0x0f, 0xb9, 0x0f,
+++				     0xdd, 0x8d, 0x00, 0x00, 0x00, 0x0d, 0x08,
+++				     0x00, 0x17, 0x23, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc2, 0x38, 0x0f, 0x0b, 0x64,
+++				     0x02, 0x11, 0xf6, 0x4c, 0x3f, 0xfa, 0xe2,
+++				     0x14, 0xff, 0xfe, 0x41, 0xa8, 0x00, 0x00,
+++				     0x5e, 0x26, 0x90, 0x00, 0x00, 0x24, 0x00,
+++				     0x17, 0x90, 0x33, 0xc0, 0x09, 0xb4, 0x0f,
+++				     0x94, 0xe9, 0x00, 0x00, 0x90, 0x0d, 0x3c,
+++				     0x90, 0x17, 0x57, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc3, 0x3c, 0x00, 0x04, 0xc9,
+++				     0x0f, 0x81, 0x11, 0x3a, 0x3f, 0xf9, 0x58,
+++				     0x7c, 0x00, 0x04, 0xf1, 0x78, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x90, 0x18, 0x3c, 0x90,
+++				     0x8b, 0x5f, 0x33, 0x60, 0x00, 0x00, 0x0c,
+++				     0xdd, 0x73, 0x00, 0x00, 0x04, 0x20, 0x08,
+++				     0x04, 0x2a, 0x23, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc4, 0x3c, 0x00, 0x0b, 0x64,
+++				     0x02, 0x11, 0x09, 0xb4, 0x3f, 0xf6, 0xca,
+++				     0x24, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x80, 0x00, 0xcf, 0x90,
+++				     0x17, 0x3b, 0x33, 0xc0, 0x00, 0x00, 0x0c,
+++				     0x94, 0x17, 0x00, 0x00, 0x94, 0x20, 0x3c,
+++				     0x94, 0x2a, 0x57, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc5, 0x26, 0x00, 0x04, 0xc9,
+++				     0x0f, 0x81, 0x11, 0x3a, 0x00, 0x00, 0x00,
+++				     0x00, 0x3f, 0xef, 0x14, 0x34, 0x80, 0x00,
+++				     0x00, 0x00, 0x00, 0x03, 0xac, 0x00, 0x04,
+++				     0x1f, 0x23, 0x33, 0xc0, 0x00, 0x00, 0x03,
+++				     0x23, 0x8d, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc6, 0x2e, 0x00, 0x0b, 0x64,
+++				     0x02, 0x11, 0x09, 0xb4, 0x00, 0x03, 0x11,
+++				     0xf4, 0xff, 0xfd, 0x62, 0x7c, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x04, 0x20, 0x24, 0x04,
+++				     0x37, 0x90, 0x33, 0xc0, 0x00, 0x00, 0x03,
+++				     0x6c, 0xe9, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc7, 0x2a, 0x0f, 0x04, 0xc9,
+++				     0x0f, 0x81, 0xee, 0xc6, 0x00, 0x02, 0x5a,
+++				     0xee, 0x00, 0x0c, 0xae, 0x86, 0x7f, 0xfd,
+++				     0xf9, 0xf3, 0x65, 0x93, 0xac, 0x3c, 0x94,
+++				     0x1f, 0x5f, 0x33, 0x6f, 0xf0, 0x47, 0x00,
+++				     0x23, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc8, 0x2a, 0x0f, 0x0b, 0x64,
+++				     0x02, 0x11, 0xf6, 0x4c, 0x00, 0x07, 0x29,
+++				     0xe4, 0xc0, 0x00, 0xdf, 0x2c, 0x7f, 0xff,
+++				     0x43, 0xb2, 0xe0, 0x84, 0x20, 0xcf, 0x94,
+++				     0x37, 0x3b, 0x33, 0xcf, 0xf6, 0x4c, 0x00,
+++				     0x6c, 0x17, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc9, 0x27, 0x00, 0x03, 0xc1,
+++				     0x04, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x3f, 0xfe, 0xf8, 0x42, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00, 0x63, 0x24, 0x00,
+++				     0x84, 0x43, 0x33, 0x90, 0x00, 0x00, 0x03,
+++				     0x1f, 0xdf, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xca, 0x21, 0x00, 0x03, 0xc1,
+++				     0x04, 0x00, 0x00, 0x00, 0x3f, 0xff, 0x0f,
+++				     0xc0, 0x3f, 0xff, 0x08, 0x00, 0x00, 0x00,
+++				     0x0f, 0x04, 0x00, 0x00, 0x42, 0x24, 0x00,
+++				     0x62, 0x43, 0x33, 0x90, 0x03, 0xe0, 0x0f,
+++				     0xe1, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xcb, 0x2d, 0x00, 0x04, 0x00,
+++				     0x04, 0x00, 0x00, 0x00, 0x3f, 0xff, 0x00,
+++				     0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00,
+++				     0x00, 0x00, 0x00, 0x00, 0x42, 0x44, 0x00,
+++				     0x62, 0x64, 0x33, 0x60, 0x00, 0x00, 0x0c,
+++				     0xe0, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xcc, 0x2b, 0x00, 0x04, 0x00,
+++				     0x04, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,
+++				     0xee, 0xfc, 0x00, 0x00, 0x63, 0x44, 0x00,
+++				     0x84, 0x64, 0x33, 0x6f, 0xfb, 0xe0, 0x00,
+++				     0x20, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb4, 0xc0);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb4, 0x00, 0x80, 0x80);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd2, 0x00, 0x00, 0x11);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x06);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd2, 0x05);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x0f);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd2, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x09);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd2, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xce, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xff, 0xaa, 0x55, 0xa5, 0x80);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x61);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf3, 0x80);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc0, 0x46);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xbe, 0x0e, 0x0b);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x05);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xbe, 0x88);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x08);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb5, 0x32);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x0b);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb5, 0x33, 0x23, 0x2b);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd1, 0x07, 0x00, 0x04);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x3b, 0x00, 0x10, 0x00, 0x30);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd9, 0xc8);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x90, 0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x91, 0xab, 0x28, 0x00, 0x0c,
+++				     0xc2, 0x00, 0x03, 0x1c, 0x01, 0x7e, 0x00,
+++				     0x0f, 0x08, 0xbb, 0x04, 0x3d, 0x10, 0xf0);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x03, 0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x51, 0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, MIPI_DCS_WRITE_CONTROL_DISPLAY,
+++				     0x20);
+++	mipi_dsi_dcs_set_tear_on_multi(&dsi_ctx, MIPI_DSI_DCS_TEAR_MODE_VBLANK);
+++	mipi_dsi_dcs_set_column_address_multi(&dsi_ctx, 0x0000, 0x0437);
+++	mipi_dsi_dcs_set_page_address_multi(&dsi_ctx, 0x0000, 0x095f);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x2f, 0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xff, 0xaa, 0x55, 0xa5, 0x81);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x0f);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xfd, 0x01, 0x5a);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x04);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xfd, 0x5f);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x1a);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xfd, 0x5f);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, MIPI_DCS_WRITE_MEMORY_START);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xca, 0x12, 0x00, 0x92, 0x02);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x02);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xec, 0x80, 0x10);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xcd, 0x05, 0x31);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x10);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd8, 0x0c);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x05);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb3, 0x86, 0x80);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb5, 0x85, 0x81);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb7, 0x85, 0x00, 0x00, 0x81);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb8, 0x05, 0x00, 0x00, 0x81);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xec, 0x0d, 0x11);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x02);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xec, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+++				     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x08);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb5, 0x32);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x0b);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb5, 0x33, 0x23, 0x2b);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xce, 0x00);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0, 0x55, 0xaa, 0x52, 0x08,
+++				     0x01);
+++	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc3, 0x94, 0x01, 0x97, 0xd0,
+++				     0x22, 0x02, 0x00);
+++	mipi_dsi_dcs_exit_sleep_mode_multi(&dsi_ctx);
+++	mipi_dsi_msleep(&dsi_ctx, 50);
+++	mipi_dsi_dcs_set_display_on_multi(&dsi_ctx);
+++	mipi_dsi_usleep_range(&dsi_ctx, 16000, 17000);
+++
+++	return dsi_ctx.accum_err;
+++}
+++
+++static int csot_vtdr6130_disable(struct drm_panel *panel)
+++{
+++	struct csot_vtdr6130 *ctx = to_csot_vtdr6130(panel);
+++	struct mipi_dsi_device *dsi = ctx->dsi;
+++	struct mipi_dsi_multi_context dsi_ctx = { .dsi = dsi };
+++
+++	mipi_dsi_dcs_set_display_off_multi(&dsi_ctx);
+++	mipi_dsi_usleep_range(&dsi_ctx, 20000, 21000);
+++	mipi_dsi_dcs_enter_sleep_mode_multi(&dsi_ctx);
+++	mipi_dsi_usleep_range(&dsi_ctx, 80000, 81000);
+++
+++	return dsi_ctx.accum_err;
+++}
+++
+++static int csot_vtdr6130_prepare(struct drm_panel *panel)
+++{
+++	struct csot_vtdr6130 *ctx = to_csot_vtdr6130(panel);
+++	struct drm_dsc_picture_parameter_set pps;
+++	struct mipi_dsi_multi_context dsi_ctx = { .dsi = ctx->dsi };
+++	int ret;
+++
+++	ret = regulator_bulk_enable(ARRAY_SIZE(csot_vtdr6130_supplies),
+++				    ctx->supplies);
+++	if (ret < 0)
+++		return ret;
+++
+++	csot_vtdr6130_reset(ctx);
+++
+++	ret = csot_vtdr6130_on(ctx);
+++	if (ret < 0) {
+++		gpiod_set_value_cansleep(ctx->reset_gpio, 1);
+++		goto err;
+++	}
+++
+++	drm_dsc_pps_payload_pack(&pps, &ctx->dsc);
+++	mipi_dsi_picture_parameter_set_multi(&dsi_ctx, &pps);
+++	mipi_dsi_compression_mode_ext_multi(&dsi_ctx, true,
+++					    MIPI_DSI_COMPRESSION_DSC, 0);
+++
+++	mipi_dsi_msleep(&dsi_ctx, 28);
+++
+++	if (dsi_ctx.accum_err < 0) {
+++		ret = dsi_ctx.accum_err;
+++		goto err;
+++	}
+++
+++	return dsi_ctx.accum_err;
+++err:
+++	regulator_bulk_disable(ARRAY_SIZE(csot_vtdr6130_supplies),
+++			       ctx->supplies);
+++	return ret;
+++}
+++
+++static int csot_vtdr6130_unprepare(struct drm_panel *panel)
+++{
+++	struct csot_vtdr6130 *ctx = to_csot_vtdr6130(panel);
+++
+++	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
+++	regulator_bulk_disable(ARRAY_SIZE(csot_vtdr6130_supplies),
+++			       ctx->supplies);
+++
+++	return 0;
+++}
+++
+++static const struct drm_display_mode csot_vtdr6130_modes[] = {
+++	{
+++		/* 90Hz mode */
+++		.clock =
+++			(1080 + 16 + 8 + 8) * (2400 + 1212 + 4 + 8) * 90 / 1000,
+++		.hdisplay = 1080,
+++		.hsync_start = 1080 + 16,
+++		.hsync_end = 1080 + 16 + 8,
+++		.htotal = 1080 + 16 + 8 + 8,
+++		.vdisplay = 2400,
+++		.vsync_start = 2400 + 1212,
+++		.vsync_end = 2400 + 1212 + 4,
+++		.vtotal = 2400 + 1212 + 4 + 8,
+++		.width_mm = 68,
+++		.height_mm = 152,
+++		.type = DRM_MODE_TYPE_DRIVER,
+++	},
+++	{
+++		/* 60Hz mode */
+++		.clock =
+++			(1080 + 16 + 8 + 8) * (2400 + 1212 + 4 + 8) * 60 / 1000,
+++		.hdisplay = 1080,
+++		.hsync_start = 1080 + 16,
+++		.hsync_end = 1080 + 16 + 8,
+++		.htotal = 1080 + 16 + 8 + 8,
+++		.vdisplay = 2400,
+++		.vsync_start = 2400 + 1212,
+++		.vsync_end = 2400 + 1212 + 4,
+++		.vtotal = 2400 + 1212 + 4 + 8,
+++		.width_mm = 68,
+++		.height_mm = 152,
+++		.type = DRM_MODE_TYPE_DRIVER,
+++	},
+++};
+++
+++static int csot_vtdr6130_get_modes(struct drm_panel *panel,
+++				   struct drm_connector *connector)
+++{
+++	int count = 0;
+++
+++	for (int i = 0; i < ARRAY_SIZE(csot_vtdr6130_modes); i++) {
+++		count += drm_connector_helper_get_modes_fixed(
+++			connector, &csot_vtdr6130_modes[i]);
+++	}
+++
+++	return count;
+++}
+++
+++static const struct drm_panel_funcs csot_vtdr6130_panel_funcs = {
+++	.prepare = csot_vtdr6130_prepare,
+++	.unprepare = csot_vtdr6130_unprepare,
+++	.disable = csot_vtdr6130_disable,
+++	.get_modes = csot_vtdr6130_get_modes,
+++};
+++
+++static int csot_vtdr6130_bl_update_status(struct backlight_device *bl)
+++{
+++	struct mipi_dsi_device *dsi = bl_get_data(bl);
+++	u16 brightness = backlight_get_brightness(bl);
+++	int ret;
+++
+++	dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
+++
+++	ret = mipi_dsi_dcs_set_display_brightness_large(dsi, brightness);
+++	if (ret < 0)
+++		return ret;
+++
+++	dsi->mode_flags |= MIPI_DSI_MODE_LPM;
+++
+++	return 0;
+++}
+++
+++static int csot_vtdr6130_bl_get_brightness(struct backlight_device *bl)
+++{
+++	struct mipi_dsi_device *dsi = bl_get_data(bl);
+++	u16 brightness;
+++	int ret;
+++
+++	dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
+++
+++	ret = mipi_dsi_dcs_get_display_brightness_large(dsi, &brightness);
+++	if (ret < 0)
+++		return ret;
+++
+++	dsi->mode_flags |= MIPI_DSI_MODE_LPM;
+++
+++	return brightness;
+++}
+++
+++static const struct backlight_ops csot_vtdr6130_bl_ops = {
+++	.update_status = csot_vtdr6130_bl_update_status,
+++	.get_brightness = csot_vtdr6130_bl_get_brightness,
+++};
+++
+++static struct backlight_device *
+++csot_vtdr6130_create_backlight(struct mipi_dsi_device *dsi)
+++{
+++	struct device *dev = &dsi->dev;
+++	const struct backlight_properties props = {
+++		.type = BACKLIGHT_RAW,
+++		.brightness = 2047,
+++		.max_brightness = 4095,
+++	};
+++
+++	return devm_backlight_device_register(dev, dev_name(dev), dev, dsi,
+++					      &csot_vtdr6130_bl_ops, &props);
+++}
+++
+++static int csot_vtdr6130_probe(struct mipi_dsi_device *dsi)
+++{
+++	struct device *dev = &dsi->dev;
+++	struct csot_vtdr6130 *ctx;
+++	int ret;
+++
+++	ctx = devm_drm_panel_alloc(dev, struct csot_vtdr6130, panel,
+++				   &csot_vtdr6130_panel_funcs,
+++				   DRM_MODE_CONNECTOR_DSI);
+++	if (IS_ERR(ctx))
+++		return PTR_ERR(ctx);
+++
+++	ret = devm_regulator_bulk_get_const(&dsi->dev,
+++					    ARRAY_SIZE(csot_vtdr6130_supplies),
+++					    csot_vtdr6130_supplies,
+++					    &ctx->supplies);
+++	if (ret < 0)
+++		return dev_err_probe(dev, ret, "Failed to get regulators\n");
+++
+++	ctx->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
+++	if (IS_ERR(ctx->reset_gpio))
+++		return dev_err_probe(dev, PTR_ERR(ctx->reset_gpio),
+++				     "Failed to get reset-gpios\n");
+++
+++	ctx->dsi = dsi;
+++	mipi_dsi_set_drvdata(dsi, ctx);
+++
+++	dsi->lanes = 4;
+++	dsi->format = MIPI_DSI_FMT_RGB888;
+++	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_BURST |
+++			  MIPI_DSI_CLOCK_NON_CONTINUOUS | MIPI_DSI_MODE_LPM;
+++
+++	ctx->panel.prepare_prev_first = true;
+++
+++	ctx->panel.backlight = csot_vtdr6130_create_backlight(dsi);
+++	if (IS_ERR(ctx->panel.backlight))
+++		return dev_err_probe(dev, PTR_ERR(ctx->panel.backlight),
+++				     "Failed to create backlight\n");
+++
+++	drm_panel_add(&ctx->panel);
+++
+++	dsi->dsc = &ctx->dsc;
+++	ctx->dsc.dsc_version_major = 1;
+++	ctx->dsc.dsc_version_minor = 1;
+++	ctx->dsc.slice_height = 12;
+++	ctx->dsc.slice_width = 1080;
+++	ctx->dsc.slice_count = 1080 / ctx->dsc.slice_width;
+++	ctx->dsc.bits_per_component = 8;
+++	ctx->dsc.bits_per_pixel = 8 << 4;
+++	ctx->dsc.block_pred_enable = true;
+++
+++	ret = mipi_dsi_attach(dsi);
+++	if (ret < 0) {
+++		drm_panel_remove(&ctx->panel);
+++		return dev_err_probe(dev, ret,
+++				     "Failed to attach to DSI host\n");
+++	}
+++
+++	return 0;
+++}
+++
+++static void csot_vtdr6130_remove(struct mipi_dsi_device *dsi)
+++{
+++	struct csot_vtdr6130 *ctx = mipi_dsi_get_drvdata(dsi);
+++
+++	drm_panel_remove(&ctx->panel);
+++}
+++
+++static const struct of_device_id csot_vtdr6130_of_match[] = {
+++	{ .compatible = "csot,vtdr6130" },
+++	{ /* sentinel */ }
+++};
+++MODULE_DEVICE_TABLE(of, csot_vtdr6130_of_match);
+++
+++static struct mipi_dsi_driver csot_vtdr6130_driver = {
+++	.probe = csot_vtdr6130_probe,
+++	.remove = csot_vtdr6130_remove,
+++	.driver = {
+++		.name = "panel-csot-vtdr6130",
+++		.of_match_table = csot_vtdr6130_of_match,
+++	},
+++};
+++module_mipi_dsi_driver(csot_vtdr6130_driver);
+++
+++MODULE_AUTHOR("Jens Reidel <adrian@travitia.xyz>");
+++MODULE_DESCRIPTION("Panel driver for the CSOT VTDR6130 AMOLED DSI panel");
+++MODULE_LICENSE("GPL");
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch b/device/community/linux-postmarketos-qcom-sc7280/0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
+new file mode 100644
+index 0000000..3354b30
+--- /dev/null
++++ b/device/community/linux-postmarketos-qcom-sc7280/0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
+@@ -0,0 +1,92 @@
++From: Mateus Seiboth <mateusseiboth12@gmail.com>
++Subject: [PATCH] arm64: dts: qcom: sm7325-xiaomi-lisa: enable the display
++
++CSOT VTDR6130 AMOLED on DSI0, panel, supplies and pins taken from the
++mainlining fork (adrian/lisa).
++---
++--- a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
+++++ b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++@@ -1150,3 +1150,83 @@
++ 	wdog: watchdog@17c10000 {
++ 	};
++ };
+++
+++/* Display: CSOT VTDR6130 AMOLED on DSI0, values from the mainlining fork */
+++/ {
+++	vreg_oled_dvdd: regulator-oled-dvdd {
+++		compatible = "regulator-fixed";
+++		regulator-name = "oled_dvdd";
+++		regulator-min-microvolt = <1200000>;
+++		regulator-max-microvolt = <1200000>;
+++
+++		gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
+++		enable-active-high;
+++
+++		vin-supply = <&vreg_s1b_1p856>;
+++
+++		regulator-boot-on;
+++	};
+++};
+++
+++&mdss {
+++	status = "okay";
+++};
+++
+++&mdss_dsi {
+++	vdda-supply = <&vdd_a_dsi_0_1p2>;
+++	status = "okay";
+++
+++	panel@0 {
+++		compatible = "csot,vtdr6130";
+++		reg = <0>;
+++
+++		reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
+++
+++		vdd-supply = <&vreg_l13c_3p0>;
+++		vddio-supply = <&vreg_l12c_1p8>;
+++		dvdd-supply = <&vreg_oled_dvdd>;
+++
+++		pinctrl-0 = <&sde_dsi_active &sde_te_active_sleep>;
+++		pinctrl-1 = <&sde_dsi_sleep &sde_te_active_sleep>;
+++		pinctrl-names = "default", "sleep";
+++
+++		port {
+++			panel_in: endpoint {
+++				remote-endpoint = <&mdss_dsi0_out>;
+++			};
+++		};
+++	};
+++};
+++
+++&mdss_dsi0_out {
+++	data-lanes = <0 1 2 3>;
+++	remote-endpoint = <&panel_in>;
+++};
+++
+++&mdss_dsi_phy {
+++	vdds-supply = <&vdd_a_dsi_0_0p9>;
+++	status = "okay";
+++};
+++
+++&tlmm {
+++	sde_dsi_active: sde-dsi-active-state {
+++		pins = "gpio44";
+++		function = "gpio";
+++		drive-strength = <8>;
+++		bias-disable;
+++	};
+++
+++	sde_dsi_sleep: sde-dsi-sleep-state {
+++		pins = "gpio44";
+++		function = "gpio";
+++		drive-strength = <2>;
+++		bias-pull-down;
+++	};
+++
+++	sde_te_active_sleep: sde-te-active-state {
+++		pins = "gpio80";
+++		function = "mdp_vsync";
+++		drive-strength = <2>;
+++		bias-pull-down;
+++	};
+++};
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch b/device/community/linux-postmarketos-qcom-sc7280/0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
+new file mode 100644
+index 0000000..c5cff34
+--- /dev/null
++++ b/device/community/linux-postmarketos-qcom-sc7280/0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
+@@ -0,0 +1,150 @@
++From: Mateus Seiboth <mateusseiboth12@gmail.com>
++Subject: [PATCH] arm64: dts: qcom: sm7325-xiaomi-lisa: enable speaker and earpiece
++
++Two TFA9873 amplifiers on PRIMARY_MI2S with the q6asm/q6afe (APR) stack,
++like the Nothing Phone (1). I2C bus and reset GPIOs from the mainlining fork.
++---
++--- a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
+++++ b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++@@ -13,6 +13,8 @@
++ #include <dt-bindings/leds/common.h>
++ #include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
++ #include <dt-bindings/regulator/qcom,rpmh-regulator.h>
+++#include <dt-bindings/sound/qcom,q6afe.h>
+++#include <dt-bindings/sound/qcom,q6asm.h>
++ 
++ #include "sm7325.dtsi"
++ #include "pm7325.dtsi"
++@@ -1230,3 +1232,132 @@
++ 		bias-pull-down;
++ 	};
++ };
+++
+++/*
+++ * Speaker and earpiece: two TFA9873 amplifiers on PRIMARY_MI2S, same design
+++ * as the Nothing Phone (1). Bus and reset GPIOs from the mainlining fork.
+++ * Each amplifier needs its own name prefix (the codec widgets clash otherwise)
+++ * and takes one I2S channel: left for the earpiece, right for the speaker.
+++ */
+++&i2c3 {
+++	clock-frequency = <100000>;
+++	status = "okay";
+++
+++	tfa9873_l: codec@34 { /* Earpiece */
+++		compatible = "nxp,tfa9873",
+++			     "nxp,tfa9872";
+++		reg = <0x34>;
+++		reset-gpio = <&tlmm 2 GPIO_ACTIVE_HIGH>;
+++		sound-name-prefix = "Earpiece";
+++		sound-channel = <0>;
+++
+++		#sound-dai-cells = <1>;
+++	};
+++
+++	tfa9873_r: codec@35 { /* Speaker */
+++		compatible = "nxp,tfa9873",
+++			     "nxp,tfa9872";
+++		reg = <0x35>;
+++		reset-gpio = <&tlmm 6 GPIO_ACTIVE_HIGH>;
+++		sound-name-prefix = "Speaker";
+++		sound-channel = <1>;
+++
+++		#sound-dai-cells = <1>;
+++	};
+++};
+++
+++&lpass_audiocc {
+++	compatible = "qcom,qcm6490-lpassaudiocc";
+++	/delete-property/ power-domains;
+++};
+++
+++&q6afedai {
+++	dai@16 {
+++		reg = <PRIMARY_MI2S_RX>;
+++		qcom,sd-lines = <1>;
+++	};
+++};
+++
+++&q6asmdai {
+++	dai@0 {
+++		reg = <MSM_FRONTEND_DAI_MULTIMEDIA1>;
+++	};
+++};
+++
+++&sound {
+++	compatible = "qcom,sm7325-sndcard",
+++		     "qcom,sm8250-sndcard";
+++
+++	model = "Xiaomi 11 Lite 5G NE";
+++
+++	pinctrl-0 = <&pri_mi2s_bck_active &pri_mi2s_din_active
+++		     &pri_mi2s_dout_active &pri_mi2s_ws_active>;
+++	pinctrl-1 = <&pri_mi2s_sleep>;
+++	pinctrl-names = "default", "sleep";
+++
+++	mm1-dai-link {
+++		link-name = "MultiMedia1";
+++
+++		cpu {
+++			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA1>;
+++		};
+++	};
+++
+++	i2s-dai-link {
+++		link-name = "I2S Playback";
+++
+++		cpu {
+++			sound-dai = <&q6afedai PRIMARY_MI2S_RX>;
+++		};
+++
+++		platform {
+++			sound-dai = <&q6routing>;
+++		};
+++
+++		codec {
+++			sound-dai = <&tfa9873_l 0>, <&tfa9873_r 0>;
+++		};
+++	};
+++};
+++
+++&tlmm {
+++	pri_mi2s_bck_active: pri-mi2s-bck-active-state {
+++		pins = "gpio97";
+++		function = "mi2s0_sck";
+++		drive-strength = <8>;
+++		bias-disable;
+++		output-high;
+++	};
+++
+++	pri_mi2s_din_active: pri-mi2s-din-active-state {
+++		pins = "gpio98";
+++		function = "mi2s0_data0";
+++		drive-strength = <8>;
+++		bias-disable;
+++		output-high;
+++	};
+++
+++	pri_mi2s_dout_active: pri-mi2s-dout-active-state {
+++		pins = "gpio99";
+++		function = "mi2s0_data1";
+++		drive-strength = <8>;
+++		bias-disable;
+++		output-high;
+++	};
+++
+++	pri_mi2s_ws_active: pri-mi2s-ws-active-state {
+++		pins = "gpio100";
+++		function = "mi2s0_ws";
+++		drive-strength = <8>;
+++		bias-disable;
+++		output-high;
+++	};
+++
+++	pri_mi2s_sleep: pri-mi2s-sleep-state {
+++		pins = "gpio97", "gpio98", "gpio99", "gpio100";
+++		function = "gpio";
+++		drive-strength = <2>;
+++		bias-pull-down;
+++		input-enable;
+++	};
+++};
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch b/device/community/linux-postmarketos-qcom-sc7280/0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
+new file mode 100644
+index 0000000..aa537c1
+--- /dev/null
++++ b/device/community/linux-postmarketos-qcom-sc7280/0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
+@@ -0,0 +1,865 @@
++From: Jens Reidel <adrian@travitia.xyz>
++Subject: [PATCH] media: i2c: Add S5K5E9 camera sensor driver
++
++From https://github.com/mainlining/linux/commit/72d6670f34, rebased on 7.2.
++---
++--- a/drivers/media/i2c/Kconfig
+++++ b/drivers/media/i2c/Kconfig
++@@ -820,6 +820,15 @@
++ 	  This is a V4L2 sensor driver for Samsung S5K5BAF 2M
++ 	  camera sensor with an embedded SoC image signal processor.
++ 
+++config VIDEO_S5K5E9
+++	tristate "Samsung S5K5E9 sensor support"
+++	help
+++	  This is a V4L2 sensor driver for Samsung S5K5E9 raw
+++	  camera sensor.
+++
+++	  To compile this driver as a module, choose M here: the
+++	  module will be called s5k5e9.
+++
++ config VIDEO_S5K6A3
++ 	tristate "Samsung S5K6A3 sensor support"
++ 	help
++--- a/drivers/media/i2c/Makefile
+++++ b/drivers/media/i2c/Makefile
++@@ -133,6 +133,7 @@
++ obj-$(CONFIG_VIDEO_S5C73M3) += s5c73m3/
++ obj-$(CONFIG_VIDEO_S5K3M5) += s5k3m5.o
++ obj-$(CONFIG_VIDEO_S5K5BAF) += s5k5baf.o
+++obj-$(CONFIG_VIDEO_S5K5E9) += s5k5e9.o
++ obj-$(CONFIG_VIDEO_S5K6A3) += s5k6a3.o
++ obj-$(CONFIG_VIDEO_S5KJN1) += s5kjn1.o
++ obj-$(CONFIG_VIDEO_SAA6588) += saa6588.o
++--- a/drivers/media/i2c/s5k5e9.c
+++++ b/drivers/media/i2c/s5k5e9.c
++@@ -0,0 +1,829 @@
+++// SPDX-License-Identifier: GPL-2.0
+++/*
+++ * Copyright (C) 2024 Vitalii Skorkin <nikroksm@mail.ru>
+++ */
+++
+++#include <linux/unaligned.h>
+++
+++#include <linux/clk.h>
+++#include <linux/delay.h>
+++#include <linux/gpio/consumer.h>
+++#include <linux/module.h>
+++#include <linux/pm_runtime.h>
+++#include <linux/regulator/consumer.h>
+++
+++#include <media/v4l2-ctrls.h>
+++#include <media/v4l2-device.h>
+++#include <media/v4l2-fwnode.h>
+++
+++#define to_s5k5e9(_sd) container_of(_sd, struct s5k5e9, sd)
+++
+++struct s5k5e9_reg {
+++	u16 address;
+++	u32 val;
+++};
+++
+++struct s5k5e9_reg_list {
+++	u32 num_of_regs;
+++	const struct s5k5e9_reg *regs;
+++};
+++
+++struct s5k5e9_mode {
+++	u32 width;
+++	u32 height;
+++	u32 hts;
+++	u32 vts;
+++	s64 link_freq;
+++	u32 lane_count;
+++	u32 depth;
+++	const struct s5k5e9_reg_list reg_list;
+++	u32 mbus_code;
+++};
+++
+++static const struct s5k5e9_reg s5k5e9_regs[] = {
+++	{0x0100, 0x0000},
+++	{0x3b45, 0x0001},
+++	{0x0b05, 0x0001},
+++	{0x392f, 0x0001},
+++	{0x3930, 0x0000},
+++	{0x3924, 0x007f},
+++	{0x3925, 0x00fd},
+++	{0x3c08, 0x00ff},
+++	{0x3c09, 0x00ff},
+++	{0x3c0a, 0x0005},
+++	{0x3c31, 0x00ff},
+++	{0x3c32, 0x00ff},
+++	{0x3290, 0x0010},
+++	{0x3200, 0x0001},
+++	{0x3074, 0x0006},
+++	{0x3075, 0x002f},
+++	{0x308a, 0x0020},
+++	{0x308b, 0x0008},
+++	{0x308c, 0x000b},
+++	{0x3081, 0x0007},
+++	{0x307b, 0x0085},
+++	{0x307a, 0x000a},
+++	{0x3079, 0x000a},
+++	{0x306e, 0x0071},
+++	{0x306f, 0x0028},
+++	{0x301f, 0x0020},
+++	{0x3012, 0x004e},
+++	{0x306b, 0x009a},
+++	{0x3091, 0x0016},
+++	{0x30c4, 0x0006},
+++	{0x306a, 0x0079},
+++	{0x30b0, 0x00ff},
+++	{0x306d, 0x0008},
+++	{0x3084, 0x0016},
+++	{0x3070, 0x000f},
+++	{0x30c2, 0x0005},
+++	{0x3069, 0x0087},
+++	{0x3c0f, 0x0000},
+++	{0x3083, 0x0014},
+++	{0x3080, 0x0008},
+++	{0x3c34, 0x00ea},
+++	{0x3c35, 0x005c},
+++};
+++
+++static const struct s5k5e9_reg s5k5e9_2592x1944_2lane_regs[] = {
+++	{0x0100, 0x0000},
+++	{0x0136, 0x0013},
+++	{0x0137, 0x0033},
+++	{0x0305, 0x0003},
+++	{0x0306, 0x0000},
+++	{0x0307, 0x0059},
+++	{0x030d, 0x0003},
+++	{0x030e, 0x0000},
+++	{0x030f, 0x0089},
+++	{0x3c1f, 0x0000},
+++	{0x3c17, 0x0000},
+++	{0x0112, 0x000a},
+++	{0x0113, 0x000a},
+++	{0x0114, 0x0001},
+++	{0x0820, 0x0003},
+++	{0x0821, 0x006c},
+++	{0x0822, 0x0000},
+++	{0x0823, 0x0000},
+++	{0x3929, 0x000f},
+++	{0x0344, 0x0000},
+++	{0x0345, 0x0008},
+++	{0x0346, 0x0000},
+++	{0x0347, 0x0008},
+++	{0x0348, 0x000a},
+++	{0x0349, 0x0027},
+++	{0x034a, 0x0007},
+++	{0x034b, 0x009f},
+++	{0x034c, 0x000a},
+++	{0x034d, 0x0020},
+++	{0x034e, 0x0007},
+++	{0x034f, 0x0098},
+++	{0x0900, 0x0000},
+++	{0x0901, 0x0000},
+++	{0x0381, 0x0001},
+++	{0x0383, 0x0001},
+++	{0x0385, 0x0001},
+++	{0x0387, 0x0001},
+++	{0x0101, 0x0000},
+++	{0x0340, 0x0007},
+++	{0x0341, 0x00ee},
+++	{0x0342, 0x000c},
+++	{0x0343, 0x0028},
+++	{0x0200, 0x000b},
+++	{0x0201, 0x009c},
+++	{0x0202, 0x0000},
+++	{0x0203, 0x0002},
+++	{0x30b8, 0x002e},
+++	{0x30ba, 0x0036},
+++};
+++
+++static struct s5k5e9_mode s5k5e9_modes[] = {
+++	{
+++		.width = 2592,
+++		.height = 1944,
+++		.hts = 3112,
+++		.vts = 2030,
+++		.link_freq = 480000000,
+++		.lane_count = 2,
+++		.depth = 10,
+++		.reg_list = {
+++			.num_of_regs = ARRAY_SIZE(s5k5e9_2592x1944_2lane_regs),
+++			.regs = s5k5e9_2592x1944_2lane_regs,
+++		},
+++		.mbus_code = MEDIA_BUS_FMT_SGRBG10_1X10,
+++	},
+++};
+++
+++static const char * const s5k5e9_supply_names[] = {
+++	"vana",
+++	"vdig",
+++	"vio",
+++};
+++
+++struct s5k5e9 {
+++	struct clk *xvclk;
+++	struct v4l2_subdev sd;
+++	struct media_pad pad;
+++	struct v4l2_ctrl_handler ctrl_handler;
+++	struct v4l2_ctrl *pixel_rate;
+++	struct v4l2_ctrl *hblank;
+++	struct v4l2_ctrl *vblank;
+++	struct v4l2_ctrl *exposure;
+++	struct s5k5e9_mode *cur_mode;
+++	struct regulator_bulk_data supplies[ARRAY_SIZE(s5k5e9_supply_names)];
+++	struct gpio_desc *reset_gpio;
+++};
+++
+++static int s5k5e9_write(struct s5k5e9 *s5k5e9, u16 reg, u16 len, u32 val)
+++{
+++	struct i2c_client *client = v4l2_get_subdevdata(&s5k5e9->sd);
+++	u8 buf[6];
+++
+++	if (len > 4)
+++		return -EINVAL;
+++
+++	put_unaligned_be16(reg, buf);
+++	put_unaligned_be32(val << 8 * (4 - len), buf + 2);
+++	if (i2c_master_send(client, buf, len + 2) != len + 2) {
+++		dev_err(&client->dev,
+++			"Cannot write register %u!\n", reg);
+++		return -EIO;
+++	}
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_write_reg_list(struct s5k5e9 *s5k5e9, const struct s5k5e9_reg_list *reg_list)
+++{
+++	int ret = 0;
+++
+++	for (unsigned int i = 0; i < reg_list->num_of_regs; i++)
+++		ret = s5k5e9_write(s5k5e9, reg_list->regs[i].address, 1, reg_list->regs[i].val);
+++
+++	return ret;
+++}
+++
+++static int s5k5e9_read(struct s5k5e9 *s5k5e9, u16 reg, u16 len, u32 *val)
+++{
+++	struct i2c_client *client = v4l2_get_subdevdata(&s5k5e9->sd);
+++	struct i2c_msg msgs[2];
+++	u8 addr_buf[2];
+++	u8 data_buf[4] = {0};
+++	int ret;
+++
+++	if (len > 4)
+++		return -EINVAL;
+++
+++	put_unaligned_be16(reg, addr_buf);
+++	msgs[0].addr = client->addr;
+++	msgs[0].flags = 0;
+++	msgs[0].len = sizeof(addr_buf);
+++	msgs[0].buf = addr_buf;
+++	msgs[1].addr = client->addr;
+++	msgs[1].flags = I2C_M_RD;
+++	msgs[1].len = len;
+++	msgs[1].buf = &data_buf[4 - len];
+++
+++	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+++	if (ret != ARRAY_SIZE(msgs)) {
+++		dev_err(&client->dev,
+++			"Cannot read register %u!\n", reg);
+++		return -EIO;
+++	}
+++
+++	*val = get_unaligned_be32(data_buf);
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_start_stream(struct s5k5e9 *s5k5e9,
+++				   struct v4l2_subdev_state *state)
+++{
+++	int ret;
+++	const struct s5k5e9_reg_list regs = {
+++		.num_of_regs = ARRAY_SIZE(s5k5e9_regs),
+++		.regs = s5k5e9_regs,
+++	};
+++
+++	ret = s5k5e9_write_reg_list(s5k5e9, &regs);
+++	if (ret)
+++		return ret;
+++
+++	ret = s5k5e9_write_reg_list(s5k5e9, &s5k5e9->cur_mode->reg_list);
+++	if (ret)
+++		return ret;
+++
+++	ret = __v4l2_ctrl_handler_setup(&s5k5e9->ctrl_handler);
+++	if (ret)
+++		return ret;
+++
+++	ret = s5k5e9_write(s5k5e9, 0x0100, 1, 0x01);
+++	if (ret)
+++		return ret;
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_stop_stream(struct s5k5e9 *s5k5e9)
+++{
+++	int ret;
+++
+++	ret = s5k5e9_write(s5k5e9, 0x0100, 1, 0x00);
+++	if (ret)
+++		return ret;
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_s_stream(struct v4l2_subdev *sd, int on)
+++{
+++	struct i2c_client *client = v4l2_get_subdevdata(sd);
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++	struct v4l2_subdev_state *state;
+++	int ret = 0;
+++
+++	state = v4l2_subdev_lock_and_get_active_state(sd);
+++
+++	if (on) {
+++		ret = pm_runtime_resume_and_get(&client->dev);
+++		if (ret < 0)
+++			goto unlock_and_return;
+++
+++		ret = s5k5e9_start_stream(s5k5e9, state);
+++		if (ret) {
+++			dev_err(&client->dev, "Failed to start streaming\n");
+++			pm_runtime_put_sync(&client->dev);
+++			goto unlock_and_return;
+++		}
+++	} else {
+++		s5k5e9_stop_stream(s5k5e9);
+++		pm_runtime_mark_last_busy(&client->dev);
+++		pm_runtime_put_autosuspend(&client->dev);
+++	}
+++
+++unlock_and_return:
+++	v4l2_subdev_unlock_state(state);
+++
+++	return ret;
+++}
+++
+++static int s5k5e9_set_fmt(struct v4l2_subdev *sd,
+++			  struct v4l2_subdev_state *state,
+++			  struct v4l2_subdev_format *fmt)
+++{
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++	struct s5k5e9_mode *mode;
+++	u64 pixel_rate;
+++	u32 v_blank;
+++	u32 h_blank;
+++
+++	mode = v4l2_find_nearest_size(s5k5e9_modes, ARRAY_SIZE(s5k5e9_modes),
+++					  width, height, fmt->format.width,
+++					  fmt->format.height);
+++
+++	fmt->format.code = mode->mbus_code;
+++	fmt->format.width = mode->width;
+++	fmt->format.height = mode->height;
+++	fmt->format.field = V4L2_FIELD_NONE;
+++
+++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+++		*v4l2_subdev_state_get_format(state, 0) =  fmt->format;
+++	} else {
+++		s5k5e9->cur_mode = mode;
+++		pixel_rate = mode->link_freq * 2 * mode->lane_count / mode->depth;
+++		__v4l2_ctrl_s_ctrl_int64(s5k5e9->pixel_rate, pixel_rate);
+++		/* Update limits and set FPS to default */
+++		v_blank = mode->vts - mode->height;
+++		__v4l2_ctrl_modify_range(s5k5e9->vblank, v_blank,
+++					 0xffff - mode->height,
+++					 1, v_blank);
+++		__v4l2_ctrl_s_ctrl(s5k5e9->vblank, v_blank);
+++		h_blank = mode->hts - mode->width;
+++		__v4l2_ctrl_modify_range(s5k5e9->hblank, h_blank,
+++					 h_blank, 1, h_blank);
+++	}
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_get_selection(struct v4l2_subdev *sd,
+++			  struct v4l2_subdev_state *sd_state,
+++			  struct v4l2_subdev_selection *sel)
+++{
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++
+++	switch (sel->target) {
+++	case V4L2_SEL_TGT_CROP:
+++		sel->r = *v4l2_subdev_state_get_crop(sd_state, sel->pad);
+++		return 0;
+++
+++	case V4L2_SEL_TGT_NATIVE_SIZE:
+++		sel->r.top = 0;
+++		sel->r.left = 0;
+++		sel->r.width = s5k5e9->cur_mode->width;
+++		sel->r.height = s5k5e9->cur_mode->height;
+++		return 0;
+++
+++	case V4L2_SEL_TGT_CROP_DEFAULT:
+++	case V4L2_SEL_TGT_CROP_BOUNDS:
+++		sel->r.top = 0;
+++		sel->r.left = 0;
+++		sel->r.width = s5k5e9->cur_mode->width;
+++		sel->r.height = s5k5e9->cur_mode->height;
+++		return 0;
+++	}
+++
+++	return -EINVAL;
+++}
+++
+++static int s5k5e9_enum_frame_sizes(struct v4l2_subdev *sd,
+++				   struct v4l2_subdev_state *state,
+++				   struct v4l2_subdev_frame_size_enum *fse)
+++{
+++	if (fse->index >= ARRAY_SIZE(s5k5e9_modes))
+++		return -EINVAL;
+++
+++	if (fse->code != s5k5e9_modes[fse->index].mbus_code)
+++		return -EINVAL;
+++
+++	fse->min_width  = s5k5e9_modes[fse->index].width;
+++	fse->max_width  = s5k5e9_modes[fse->index].width;
+++	fse->max_height = s5k5e9_modes[fse->index].height;
+++	fse->min_height = s5k5e9_modes[fse->index].height;
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_enum_mbus_code(struct v4l2_subdev *sd,
+++				 struct v4l2_subdev_state *state,
+++				 struct v4l2_subdev_mbus_code_enum *code)
+++{
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++
+++	if (code->index != 0)
+++		return -EINVAL;
+++
+++	code->code = s5k5e9->cur_mode->mbus_code;
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_init_state(struct v4l2_subdev *sd,
+++				 struct v4l2_subdev_state *sd_state)
+++{
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++	struct v4l2_subdev_format fmt = {
+++		.which = V4L2_SUBDEV_FORMAT_TRY,
+++		.format = {
+++			.width = s5k5e9->cur_mode->width,
+++			.height = s5k5e9->cur_mode->height,
+++		},
+++	};
+++
+++	s5k5e9_set_fmt(sd, sd_state, &fmt);
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_set_ctrl(struct v4l2_ctrl *ctrl)
+++{
+++	struct s5k5e9 *s5k5e9 = container_of(ctrl->handler,
+++						 struct s5k5e9, ctrl_handler);
+++	struct i2c_client *client = v4l2_get_subdevdata(&s5k5e9->sd);
+++	struct v4l2_mbus_framefmt *format;
+++	struct v4l2_subdev_state *state;
+++	u32 exposure_max;
+++	int ret;
+++
+++	state = v4l2_subdev_get_locked_active_state(&s5k5e9->sd);
+++	format = v4l2_subdev_state_get_format(state, 0);
+++
+++	/* Propagate change of current control to all related controls */
+++	if (ctrl->id == V4L2_CID_VBLANK) {
+++		/* Update max exposure while meeting expected vblanking */
+++		exposure_max = s5k5e9->cur_mode->height + ctrl->val - 2;
+++		__v4l2_ctrl_modify_range(s5k5e9->exposure,
+++					 s5k5e9->exposure->minimum,
+++					 exposure_max, s5k5e9->exposure->step,
+++					 exposure_max);
+++	}
+++
+++	if (!pm_runtime_get_if_in_use(&client->dev))
+++		return 0;
+++
+++	switch (ctrl->id) {
+++	case V4L2_CID_EXPOSURE:
+++		ret = s5k5e9_write(s5k5e9, 0x0104, 1, 0x01);
+++		ret = s5k5e9_write(s5k5e9, 0x0202, 2, ctrl->val);
+++		ret = s5k5e9_write(s5k5e9, 0x0104, 1, 0x00);
+++		break;
+++	case V4L2_CID_ANALOGUE_GAIN:
+++		ret = s5k5e9_write(s5k5e9, 0x0104, 1, 0x01);
+++		ret = s5k5e9_write(s5k5e9, 0x0204, 2, ctrl->val);
+++		ret = s5k5e9_write(s5k5e9, 0x0104, 1, 0x00);
+++		break;
+++	case V4L2_CID_VBLANK:
+++		ret = s5k5e9_write(s5k5e9, 0x0104, 1, 0x01);
+++		ret = s5k5e9_write(s5k5e9, 0x0340, 2, s5k5e9->cur_mode->height + ctrl->val);
+++		ret = s5k5e9_write(s5k5e9, 0x0104, 1, 0x00);
+++		break;
+++	default:
+++		ret = -EINVAL;
+++		dev_warn(&client->dev, "%s Unhandled id: 0x%x\n",
+++			 __func__, ctrl->id);
+++		break;
+++	}
+++
+++	pm_runtime_put(&client->dev);
+++
+++	return ret;
+++}
+++
+++static const struct v4l2_subdev_core_ops s5k5e9_core_ops = { };
+++
+++static const struct v4l2_subdev_video_ops s5k5e9_video_ops = {
+++	.s_stream = s5k5e9_s_stream,
+++};
+++
+++static const struct v4l2_subdev_pad_ops s5k5e9_pad_ops = {
+++	.enum_mbus_code = s5k5e9_enum_mbus_code,
+++	.enum_frame_size = s5k5e9_enum_frame_sizes,
+++	.get_fmt = v4l2_subdev_get_fmt,
+++	.set_fmt = s5k5e9_set_fmt,
+++	.get_selection = s5k5e9_get_selection,
+++};
+++
+++static const struct v4l2_subdev_ops s5k5e9_subdev_ops = {
+++	.core	= &s5k5e9_core_ops,
+++	.video	= &s5k5e9_video_ops,
+++	.pad	= &s5k5e9_pad_ops,
+++};
+++
+++static const struct v4l2_subdev_internal_ops s5k5e9_internal_ops = {
+++	.init_state = s5k5e9_init_state,
+++};
+++
+++static const struct v4l2_ctrl_ops s5k5e9_ctrl_ops = {
+++	.s_ctrl = s5k5e9_set_ctrl,
+++};
+++
+++static int s5k5e9_power_on(struct device *dev)
+++{
+++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++	int ret;
+++
+++	gpiod_set_value_cansleep(s5k5e9->reset_gpio, 0);
+++	usleep_range(1000, 2000);
+++
+++	ret = regulator_bulk_enable(ARRAY_SIZE(s5k5e9_supply_names),
+++					s5k5e9->supplies);
+++	if (ret) {
+++		dev_err(dev, "failed to enable regulators\n");
+++		return ret;
+++	}
+++	usleep_range(1000, 2000);
+++
+++	ret = clk_prepare_enable(s5k5e9->xvclk);
+++	if (ret) {
+++		dev_err(dev, "Failed to enable xvclk\n");
+++		goto disable_regulator;
+++	}
+++	usleep_range(10000, 11000);
+++
+++	gpiod_set_value_cansleep(s5k5e9->reset_gpio, 1);
+++	usleep_range(18000, 19000);
+++
+++	return 0;
+++
+++disable_regulator:
+++	regulator_bulk_disable(ARRAY_SIZE(s5k5e9_supply_names),
+++				   s5k5e9->supplies);
+++	return ret;
+++};
+++
+++static int s5k5e9_power_off(struct device *dev)
+++{
+++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++
+++	clk_disable_unprepare(s5k5e9->xvclk);
+++	usleep_range(1000, 2000);
+++
+++	gpiod_set_value_cansleep(s5k5e9->reset_gpio, 0);
+++	usleep_range(1000, 2000);
+++
+++	regulator_bulk_disable(ARRAY_SIZE(s5k5e9_supply_names),
+++					  s5k5e9->supplies);
+++	return 0;
+++};
+++
+++static int s5k5e9_init_ctrls(struct s5k5e9 *s5k5e9)
+++{
+++	struct i2c_client *client = v4l2_get_subdevdata(&s5k5e9->sd);
+++	struct v4l2_ctrl_handler *handler = &s5k5e9->ctrl_handler;
+++	struct v4l2_fwnode_device_properties props;
+++	struct v4l2_ctrl *ctrl;
+++	struct s5k5e9_mode *mode = s5k5e9->cur_mode;
+++	u64 pixel_rate;
+++	u32 h_blank;
+++	u32 v_blank;
+++	u32 exposure_max;
+++	int ret;
+++	static s64 link_freq[] = {
+++		0
+++	};
+++	link_freq[0] = mode->link_freq;
+++
+++	ret = v4l2_ctrl_handler_init(handler, 5);
+++	if (ret)
+++		return ret;
+++
+++	ctrl = v4l2_ctrl_new_int_menu(handler, NULL, V4L2_CID_LINK_FREQ,
+++					  ARRAY_SIZE(link_freq) - 1, 0, link_freq);
+++	if (ctrl)
+++		ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+++
+++	pixel_rate = mode->link_freq * 2 * mode->lane_count / mode->depth;
+++	s5k5e9->pixel_rate = v4l2_ctrl_new_std(handler, NULL, V4L2_CID_PIXEL_RATE,
+++			  0, pixel_rate, 1, pixel_rate);
+++
+++	h_blank = mode->hts - mode->width;
+++	s5k5e9->hblank = v4l2_ctrl_new_std(handler, NULL, V4L2_CID_HBLANK,
+++					   h_blank, h_blank, 1, h_blank);
+++	if (s5k5e9->hblank)
+++		s5k5e9->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+++
+++	v_blank = mode->vts - mode->height;
+++	s5k5e9->vblank = v4l2_ctrl_new_std(handler, &s5k5e9_ctrl_ops,
+++					   V4L2_CID_VBLANK, v_blank,
+++					   0xffff - mode->height,
+++					   1, v_blank);
+++
+++	exposure_max = mode->vts - 2;
+++	s5k5e9->exposure = v4l2_ctrl_new_std(handler, &s5k5e9_ctrl_ops,
+++						 V4L2_CID_EXPOSURE,
+++						 0,
+++						 exposure_max, 1,
+++						 exposure_max);
+++
+++	v4l2_ctrl_new_std(handler, &s5k5e9_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
+++			  32, 1024, 1, 1024);
+++
+++	if (handler->error) {
+++		ret = handler->error;
+++		goto err_free_handler;
+++	}
+++
+++	ret = v4l2_fwnode_device_parse(&client->dev, &props);
+++	if (ret)
+++		goto err_free_handler;
+++
+++	ret = v4l2_ctrl_new_fwnode_properties(handler, &s5k5e9_ctrl_ops,
+++						  &props);
+++	if (ret)
+++		goto err_free_handler;
+++
+++	s5k5e9->sd.ctrl_handler = handler;
+++
+++	return 0;
+++
+++err_free_handler:
+++	dev_err(&client->dev, "Failed to init controls: %d\n", ret);
+++	v4l2_ctrl_handler_free(handler);
+++
+++	return ret;
+++}
+++
+++static int s5k5e9_check_sensor_id(struct s5k5e9 *s5k5e9)
+++{
+++	struct i2c_client *client = v4l2_get_subdevdata(&s5k5e9->sd);
+++	u32 id = 0;
+++	int ret;
+++
+++	ret = s5k5e9_read(s5k5e9, 0x0000, 2, &id);
+++	if (ret)
+++		return ret;
+++
+++	if (id != 0x559b) {
+++		dev_err(&client->dev, "Chip ID mismatch: expected 0x%x, got 0x%x\n", 0x559b, id);
+++		return -ENODEV;
+++	}
+++
+++	dev_info(&client->dev, "Detected s5k5e9 sensor\n");
+++	return 0;
+++}
+++
+++static int s5k5e9_parse_of(struct s5k5e9 *s5k5e9)
+++{
+++	struct v4l2_fwnode_endpoint vep = { .bus_type = V4L2_MBUS_CSI2_DPHY };
+++	struct i2c_client *client = v4l2_get_subdevdata(&s5k5e9->sd);
+++	struct device *dev = &client->dev;
+++	struct fwnode_handle *endpoint;
+++	int ret;
+++
+++	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(dev), NULL);
+++	if (!endpoint) {
+++		dev_err(dev, "Failed to get endpoint\n");
+++		return -EINVAL;
+++	}
+++
+++	ret = v4l2_fwnode_endpoint_parse(endpoint, &vep);
+++	fwnode_handle_put(endpoint);
+++	if (ret) {
+++		dev_err(dev, "Failed to parse endpoint: %d\n", ret);
+++		return ret;
+++	}
+++
+++	for (unsigned int i = 0; i < ARRAY_SIZE(s5k5e9_modes); i++) {
+++		struct s5k5e9_mode *mode = &s5k5e9_modes[i];
+++
+++		if (mode->lane_count != vep.bus.mipi_csi2.num_data_lanes)
+++			continue;
+++
+++		s5k5e9->cur_mode = mode;
+++		break;
+++	}
+++
+++	if (!s5k5e9->cur_mode) {
+++		dev_err(dev, "Unsupported number of data lanes %u\n",
+++			vep.bus.mipi_csi2.num_data_lanes);
+++		return -EINVAL;
+++	}
+++
+++	return 0;
+++}
+++
+++static int s5k5e9_probe(struct i2c_client *client)
+++{
+++	struct device *dev = &client->dev;
+++	struct s5k5e9 *s5k5e9;
+++	struct v4l2_subdev *sd;
+++	int ret;
+++
+++	s5k5e9 = devm_kzalloc(dev, sizeof(*s5k5e9), GFP_KERNEL);
+++	if (!s5k5e9)
+++		return -ENOMEM;
+++
+++	s5k5e9->xvclk = devm_clk_get(dev, "xvclk");
+++	if (IS_ERR(s5k5e9->xvclk))
+++		return dev_err_probe(dev, PTR_ERR(s5k5e9->xvclk),
+++					 "Failed to get xvclk\n");
+++
+++	s5k5e9->reset_gpio = devm_gpiod_get(dev, "reset",
+++							 GPIOD_OUT_LOW);
+++	if (IS_ERR(s5k5e9->reset_gpio))
+++		return dev_err_probe(dev, PTR_ERR(s5k5e9->reset_gpio),
+++					 "Failed to get reset gpio\n");
+++
+++	v4l2_i2c_subdev_init(&s5k5e9->sd, client, &s5k5e9_subdev_ops);
+++	s5k5e9->sd.internal_ops = &s5k5e9_internal_ops;
+++
+++	for (unsigned int i = 0; i < ARRAY_SIZE(s5k5e9_supply_names); i++)
+++		s5k5e9->supplies[i].supply = s5k5e9_supply_names[i];
+++
+++	ret = devm_regulator_bulk_get(&client->dev,
+++					   ARRAY_SIZE(s5k5e9_supply_names),
+++					   s5k5e9->supplies);
+++	if (ret)
+++		return dev_err_probe(dev, ret, "Failed to get regulators\n");
+++
+++	ret = s5k5e9_parse_of(s5k5e9);
+++	if (ret)
+++		return ret;
+++
+++	ret = s5k5e9_init_ctrls(s5k5e9);
+++	if (ret)
+++		return ret;
+++
+++	sd = &s5k5e9->sd;
+++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+++	s5k5e9->pad.flags = MEDIA_PAD_FL_SOURCE;
+++	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
+++	ret = media_entity_pads_init(&sd->entity, 1, &s5k5e9->pad);
+++	if (ret < 0)
+++		goto err_free_handler;
+++
+++	sd->state_lock = s5k5e9->ctrl_handler.lock;
+++	ret = v4l2_subdev_init_finalize(sd);
+++	if (ret < 0) {
+++		dev_err(&client->dev, "Subdev initialization error %d\n", ret);
+++		goto err_clean_entity;
+++	}
+++
+++	ret = s5k5e9_power_on(dev);
+++	if (ret)
+++		goto err_clean_entity;
+++
+++	pm_runtime_set_active(dev);
+++	pm_runtime_get_noresume(dev);
+++	pm_runtime_enable(dev);
+++
+++	ret = s5k5e9_check_sensor_id(s5k5e9);
+++	if (ret)
+++		goto err_power_off;
+++
+++	pm_runtime_set_autosuspend_delay(dev, 1000);
+++	pm_runtime_use_autosuspend(dev);
+++
+++	ret = v4l2_async_register_subdev_sensor(sd);
+++	if (ret) {
+++		dev_err(dev, "v4l2 async register subdev failed\n");
+++		goto err_power_off;
+++	}
+++
+++	pm_runtime_mark_last_busy(dev);
+++	pm_runtime_put_autosuspend(dev);
+++
+++	return 0;
+++
+++err_power_off:
+++	pm_runtime_disable(dev);
+++	pm_runtime_put_noidle(dev);
+++	s5k5e9_power_off(dev);
+++err_clean_entity:
+++	media_entity_cleanup(&sd->entity);
+++err_free_handler:
+++	v4l2_ctrl_handler_free(&s5k5e9->ctrl_handler);
+++
+++	return ret;
+++};
+++
+++static void s5k5e9_remove(struct i2c_client *client)
+++{
+++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+++	struct s5k5e9 *s5k5e9 = to_s5k5e9(sd);
+++
+++	v4l2_async_unregister_subdev(sd);
+++	media_entity_cleanup(&sd->entity);
+++	v4l2_ctrl_handler_free(&s5k5e9->ctrl_handler);
+++
+++	pm_runtime_disable(&client->dev);
+++	if (!pm_runtime_status_suspended(&client->dev))
+++		s5k5e9_power_off(&client->dev);
+++	pm_runtime_set_suspended(&client->dev);
+++}
+++
+++static const struct dev_pm_ops s5k5e9_pm_ops = {
+++	SET_RUNTIME_PM_OPS(s5k5e9_power_off, s5k5e9_power_on, NULL)
+++};
+++
+++static const struct of_device_id s5k5e9_of_match[] = {
+++	{ .compatible = "samsung,s5k5e9" },
+++	{ /* sentinel */ }
+++};
+++MODULE_DEVICE_TABLE(of, s5k5e9_of_match);
+++
+++static struct i2c_driver s5k5e9_i2c_driver = {
+++	.driver = {
+++		.of_match_table = s5k5e9_of_match,
+++		.pm = &s5k5e9_pm_ops,
+++		.name = "s5k5e9",
+++	},
+++	.probe  = s5k5e9_probe,
+++	.remove = s5k5e9_remove,
+++};
+++
+++module_i2c_driver(s5k5e9_i2c_driver)
+++
+++MODULE_DESCRIPTION("Samsung S5K5E9 image sensor subdev driver");
+++MODULE_LICENSE("GPL");
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch b/device/community/linux-postmarketos-qcom-sc7280/0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
+new file mode 100644
+index 0000000..f2ae4ac
+--- /dev/null
++++ b/device/community/linux-postmarketos-qcom-sc7280/0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
+@@ -0,0 +1,96 @@
++From: Mateus Seiboth <mateusseiboth12@gmail.com>
++Subject: [PATCH] arm64: dts: qcom: sm7325-xiaomi-lisa: enable the macro camera
++
++Samsung S5K5E9 on CSIPHY2 / CCI1, from the mainlining fork. The DW9800V
++focus motor has no mainline driver yet and is left out.
++---
++--- a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
+++++ b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++@@ -6,11 +6,13 @@
++ 
++ /dts-v1/;
++ 
+++#include <dt-bindings/clock/qcom,camcc-sc7280.h>
++ #include <dt-bindings/gpio/gpio.h>
++ #include <dt-bindings/iio/qcom,spmi-adc7-pm7325.h>
++ #include <dt-bindings/iio/qcom,spmi-adc7-pm8350b.h>
++ #include <dt-bindings/iio/qcom,spmi-adc7-pmk8350.h>
++ #include <dt-bindings/leds/common.h>
+++#include <dt-bindings/media/video-interfaces.h>
++ #include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
++ #include <dt-bindings/regulator/qcom,rpmh-regulator.h>
++ #include <dt-bindings/sound/qcom,q6afe.h>
++@@ -1361,3 +1363,73 @@
++ 		input-enable;
++ 	};
++ };
+++
+++/*
+++ * Macro camera: Samsung S5K5E9 on CSIPHY2 / CCI1 bus 0, from the mainlining
+++ * fork. Its DW9800V focus motor has no mainline driver and is left out.
+++ */
+++&camss {
+++	vdda-phy-supply = <&vreg_l10c_0p88>;
+++	vdda-pll-supply = <&vreg_l6b_1p2>;
+++
+++	status = "okay";
+++
+++	ports {
+++		port@2 {
+++			csiphy2_ep: endpoint {
+++				clock-lanes = <7>;
+++				data-lanes = <0 1>;
+++				bus-type = <MEDIA_BUS_TYPE_CSI2_DPHY>;
+++				remote-endpoint = <&camera_s5k5e9_ep>;
+++			};
+++		};
+++	};
+++};
+++
+++&cci0 {
+++	status = "okay";
+++};
+++
+++&cci1 {
+++	status = "okay";
+++};
+++
+++&cci1_i2c0 {
+++	camera@2d {
+++		compatible = "samsung,s5k5e9";
+++		reg = <0x2d>;
+++
+++		vio-supply = <&vreg_l5p>;
+++		vana-supply = <&vreg_l4p>;
+++		vdig-supply = <&vreg_l2p>;
+++
+++		clocks = <&camcc CAM_CC_MCLK2_CLK>;
+++		clock-names = "xvclk";
+++		clock-frequency = <19200000>;
+++		assigned-clocks = <&camcc CAM_CC_MCLK2_CLK>;
+++		assigned-clock-rates = <19200000>;
+++
+++		reset-gpios = <&tlmm 77 GPIO_ACTIVE_HIGH>;
+++		pinctrl-0 = <&cam_mclk2_default>;
+++		pinctrl-names = "default";
+++
+++		orientation = <1>;
+++		rotation = <270>;
+++
+++		port {
+++			camera_s5k5e9_ep: endpoint {
+++				data-lanes = <0 1>;
+++				link-frequencies = /bits/ 64 <480000000>;
+++				remote-endpoint = <&csiphy2_ep>;
+++			};
+++		};
+++	};
+++};
+++
+++&cci2_default {
+++	drive-strength = <4>;
+++};
+++
+++&cci3_default {
+++	drive-strength = <4>;
+++};
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/APKBUILD b/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
+index 8a276de..2b119e5 100644
+--- a/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
++++ b/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
+@@ -4,7 +4,7 @@ maintainer="Luca Weiss <luca@lucaweiss.eu>"
+ _flavor="postmarketos-qcom-sc7280"
+ pkgname=linux-$_flavor
+ pkgver=7.2.9
+-pkgrel=3
++pkgrel=11
+ pkgdesc="Mainline Kernel fork for SC7280/SM7325/QCM6490 devices"
+ arch="aarch64"
+ _carch="arm64"
+@@ -41,6 +41,13 @@ _tag="v$pkgver-sc7280"
+ source="
+ 	https://github.com/sc7280-mainline/$_repo/archive/refs/tags/$_tag/$_repo-$_tag.tar.gz
+ 	$_config
++	0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
++	0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
++	0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
++	0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
++	0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
++	0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
++	0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
+ "
+ builddir="$srcdir/$_repo-$pkgver-sc7280"
+ 
+@@ -79,5 +86,12 @@ package() {
+ 
+ sha512sums="
+ 4852430f42a9e45833d590559875b869405d8d28d93fb9111f9b25f0b0d336c36d9be6a56a27da9c3cde642df17f792055729fa41256f51860794db3afdae674  linux-v7.2.9-sc7280.tar.gz
+-54ec1fe2de9c9af8a549ea27b47c77f24b62df351dcafddb0c1723a664beec7db7556ee39b334be3fb1dd5ed84c571ad4713bca1765f0ead590433c61f2b0ff3  config-postmarketos-qcom-sc7280.aarch64
++d36a25a543ee2686fab1674672528ae20d8a4706476613e1457fb777c4d1d3f93601a4274a02edad83fcd2e1bb79f4b62e9d0281e0f585f8707a0c526ef3b05d  config-postmarketos-qcom-sc7280.aarch64
++7eb57a1209ec20941fb41af8af15736b158cb4ef1a13aafeeef384380f36061b4e80cfadba4abe3d129660085aba0cc13363dddd1d12abc26e2f48949e9b9a62  0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
++c7630ec480dc073cc115edd971b0eea4b61b5c089f5f01a833821fb4d920100b71639a9c7ae3c4681d52d9e4b08a5b90ca651285531cad4e18e0814ce1a77dfb  0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
++da4436b1e510dd954b49a92585a99e5057237d2602ea6cab588863d85ccd5c23448499633ea77eccbebd3826266e1de127778a5e930208af98493be552cf2f7b  0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
++225bcb1ca05d88b34de9be9615fff74f81340306139926a685851c59169f5cebcc7ef80b6b579f138c958d255e9bc82f5106c679e9ec5e0a40d77da006991443  0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
++41146c92fc14e051c62689fb1560ab90e2ea26107eae6ce6089b018cca90e3c8dc6dd9bb4f24c54f37c13f0367f483746e9abfdb9612104812e0766fefe3ea3c  0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
++3f95a63211feead22463437a3aa6803cb61a15e420cc5d10386bb44b2b8f7ce3dc2cb9ca360168b5ead2c75f8dcb27aadd6777a1cf76622922d74b12ce61677b  0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
++08b11b61e8c213709a807309637a7d8e16ab2d498c1e052a2fac231a9254d441dba1e480c6758aa413b75b4f98af7e05bfccb31adfa0d93ecc7752768d9858c9  0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
+ "
+diff --git a/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64 b/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
+index cba75f4..e8523c9 100644
+--- a/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
++++ b/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
+@@ -4414,6 +4414,7 @@ CONFIG_VIDEO_IMX858=m
+ # CONFIG_VIDEO_RJ54N1 is not set
+ # CONFIG_VIDEO_S5C73M3 is not set
+ # CONFIG_VIDEO_S5K3M5 is not set
++CONFIG_VIDEO_S5K5E9=m
+ # CONFIG_VIDEO_S5K5BAF is not set
+ # CONFIG_VIDEO_S5K6A3 is not set
+ CONFIG_VIDEO_S5KJN1=m
+@@ -5050,6 +5051,7 @@ CONFIG_DRM_PANEL_SHIFT_SH8804B=m
+ # CONFIG_DRM_PANEL_VISIONOX_R66451 is not set
+ # CONFIG_DRM_PANEL_VISIONOX_RM69299 is not set
+ CONFIG_DRM_PANEL_VISIONOX_RM692E5=m
++CONFIG_DRM_PANEL_CSOT_VTDR6130=m
+ # CONFIG_DRM_PANEL_VISIONOX_VTDR6130 is not set
+ # CONFIG_DRM_PANEL_WIDECHIPS_WS2401 is not set
+ # CONFIG_DRM_PANEL_XIAOMI_42_02_0A is not set
+@@ -5071,7 +5073,7 @@ CONFIG_DRM_PANEL_VISIONOX_RM692E5=m
+ # Drivers for system framebuffers
+ #
+ # CONFIG_DRM_EFIDRM is not set
+-# CONFIG_DRM_SIMPLEDRM is not set
++CONFIG_DRM_SIMPLEDRM=y
+ # end of Drivers for system framebuffers
+ 
+ # CONFIG_DRM_TIDSS is not set
+-- 
+2.56.0
+

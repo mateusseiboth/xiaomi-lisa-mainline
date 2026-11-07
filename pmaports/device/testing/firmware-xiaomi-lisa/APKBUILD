@@ -1,0 +1,118 @@
+# Maintainer: Jens Reidel <adrian@travitia.xyz>
+# Reference: <https://postmarketos.org/devicepkg>
+
+pkgname=firmware-xiaomi-lisa
+pkgver=1
+pkgrel=0
+pkgdesc="Firmware for Xiaomi 11 Lite 5G NE / 11 LE"
+subpackages="
+	$pkgname-adsp
+	$pkgname-cdsp
+	$pkgname-gpu
+	$pkgname-ipa
+	$pkgname-modem
+	$pkgname-sensors
+	$pkgname-vpu
+	$pkgname-wpss
+	"
+url="https://github.com/mainlining/firmware-xiaomi-lisa"
+arch="aarch64"
+license="proprietary"
+options="!check !strip !archcheck !tracedeps pmb:cross-native"
+_commit="7556db82708f1d624a6684cd500b4b44e414f39b"
+source="
+	$pkgname-$_commit.tar.gz::$url/archive/$_commit/$pkgname-$_commit.tar.gz
+	adsp.files
+	cdsp.files
+	gpu.files
+	ipa.files
+	modem.files
+	sensors.files
+	vpu.files
+	wpss.files
+"
+builddir="$srcdir/$pkgname-$_commit"
+
+package() {
+	# parent package is empty
+	mkdir -p "$pkgdir"
+}
+
+# Helper method for installing firmware files from a text file
+install_files() {
+	cd "$builddir"
+
+	while IFS="" read -r _i || [ -n "$_i" ]; do
+		[ ! -d $(dirname $_i) ] && mkdir -p $(dirname $_i)
+		echo $_i
+		install -Dm644 $_i "$subpkgdir/$_i"
+	done < "$srcdir/$1"
+}
+
+adsp() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE adsp firmware"
+
+	mkdir "$subpkgdir"
+	install_files "adsp.files"
+}
+
+cdsp() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE cdsp firmware"
+
+	mkdir "$subpkgdir"
+	install_files "cdsp.files"
+}
+
+gpu() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE gpu firmware"
+
+	mkdir "$subpkgdir"
+	install_files "gpu.files"
+}
+
+ipa() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE ipa firmware"
+
+	mkdir "$subpkgdir"
+	install_files "ipa.files"
+}
+
+modem() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE modem firmware"
+
+	mkdir "$subpkgdir"
+	install_files "modem.files"
+}
+
+sensors() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE sensors firmware"
+
+	mkdir "$subpkgdir"
+	install_files "sensors.files"
+}
+
+vpu() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE vpu firmware"
+
+	mkdir "$subpkgdir"
+	install_files "vpu.files"
+}
+
+wpss() {
+	pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE wpss firmware"
+
+	mkdir "$subpkgdir"
+	install_files "wpss.files"
+}
+
+sha512sums="
+924e56542d7b42e32165b352e7c3f08731d3fb99d8a5298da75595aae0959d285478a5a6ad361a80db0ded7e423338562417e2ec068beb6902742952757ccdb4  firmware-xiaomi-lisa-7556db82708f1d624a6684cd500b4b44e414f39b.tar.gz
+84d395a083d5badebd979692631e40081a61876a1e1d99338927ecbb653f1bd6b49cb70748350983c7b88d05c683f122deb7a53ad1626ffc6f396686e6a0e27a  adsp.files
+678afeeeade7c043647aa18ca68fc5fed52f456efbb21b359075880f27faacda7df5c7f99e20fc38ced0b74cabc4d2252930b50fe96ff3bf27866044bd481468  cdsp.files
+9787c0168d390b425768ecb40f18ca211c69f8db461e6cc21f5f3bee841d65b2ee77a76c63bf2398671a1f921904dd901e67eab9d11c5d49e3fcb50a871029e3  gpu.files
+6f0ef0b7be7657b8b765b8fe232c33e6786ff048b1518eec1a4d1280cc81184debd6390e1c4324a5a3f732e17fdbc635bd76afe130e967d9e3a3b5d569e18801  ipa.files
+65e5f2922e53d4a7054a9be080b49d06e5704645a3f39431ff6def14c816d27d6f3ceb890368fb10cf6ca2fa336e15da43b6864fae797d40dee6462bd162dd88  modem.files
+015f7a130a5d93f7317d13ceb135a690b43fc359a406385a46ad4c47ae011cea82db13cf3121ac202e168fe3ca9ca593dc8d8d10388a0dabc07805bd341cbb2d  sensors.files
+133c97712a03e77ed2e3c869ac842491938ee0d8cfd6e878e62d158a07a4a66d66b35e15473362df01fd83565fb67dca7a5eedf52232b850e345dc00b05b0576  vpu.files
+bf6d0f744a66a9452d86ea24589e4f7bf50e867d9e5a2b00b719dc6eacc2c29b0ad02526b4c562005d9ba48b7206e4658970ca4bb9bb5856e1c75f92736d86b9  wpss.files
+"

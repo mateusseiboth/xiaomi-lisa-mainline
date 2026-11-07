@@ -1,0 +1,17 @@
+/dts-v1/;
+/plugin/;
+
+/*
+ * No-op overlay in the same form as the stock Xiaomi ones: target by label,
+ * resolved through __fixups__ against the main DTB __symbols__.
+ */
+/ {
+	model = "Xiaomi 11 Lite 5G NE";
+	compatible = "xiaomi,lisa", "qcom,sm7325";
+	qcom,msm-id = <0x1db 0x10000>;
+	qcom,board-id = <0x1000b 0x0>;
+};
+
+&framebuffer_mem {
+	xiaomi,mainline-dtbo-noop;
+};
