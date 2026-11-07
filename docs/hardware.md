@@ -6,7 +6,7 @@ Kernel 7.2.9 (`linux-postmarketos-qcom-sc7280`) with the patches in
 | Component | Status | Notes |
 | --- | --- | --- |
 | Boot from stock ABL | Works | see [abl-requirements.md](abl-requirements.md) |
-| Display | Works | CSOT VTDR6130 AMOLED, DSI video mode, DSC. Driver from the mainlining fork |
+| Display | Works | CSOT VTDR6130 AMOLED, DSI command mode, DSC. Driver from the mainlining fork |
 | GPU | Works | Adreno 642L (`msm`), Mesa freedreno |
 | Touchscreen | Works | Goodix Berlin (gt9897) over SPI |
 | Wi-Fi, Bluetooth | Work | WCN6750 |

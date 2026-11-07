@@ -18,7 +18,7 @@ macro camera work. See [docs/hardware.md](docs/hardware.md).
 | [`docs/debugging.md`](docs/debugging.md) | Reading the bootloader's own logs from the `logfs` partition |
 | [`docs/flashing.md`](docs/flashing.md) | Building, flashing and updating |
 | [`docs/hardware.md`](docs/hardware.md) | Hardware status and camera sensors |
-| [`tools/`](tools) | UEFI log dump script and an offline DTB overlay check |
+| [`tools/`](tools) | UEFI log dump script, an offline DTB overlay check and a decoder for the CamX sensor module blobs |
 
 ## Why this was hard
 
