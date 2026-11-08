@@ -1,4 +1,4 @@
-From aa0522d0d82f262a64b237ba367c9295f25c6695 Mon Sep 17 00:00:00 2001
+From 2a360da9b0c7cbe73e662986f9af5bc6690d99a0 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 2/4] firmware-xiaomi-lisa: new aport
@@ -6,7 +6,7 @@ Subject: [PATCH 2/4] firmware-xiaomi-lisa: new aport
 Firmware for the Xiaomi 11 Lite 5G NE, from the mainlining fork
 (adrian/lisa), imported from OS1.0.5.0.UKOEUXM.
 ---
- device/testing/firmware-xiaomi-lisa/APKBUILD  | 118 ++++++
+ device/testing/firmware-xiaomi-lisa/APKBUILD  | 127 ++++++
  .../testing/firmware-xiaomi-lisa/adsp.files   |   4 +
  .../testing/firmware-xiaomi-lisa/cdsp.files   |   2 +
  device/testing/firmware-xiaomi-lisa/gpu.files |   1 +
@@ -15,7 +15,7 @@ Firmware for the Xiaomi 11 Lite 5G NE, from the mainlining fork
  .../firmware-xiaomi-lisa/sensors.files        | 392 ++++++++++++++++++
  device/testing/firmware-xiaomi-lisa/vpu.files |   1 +
  .../testing/firmware-xiaomi-lisa/wpss.files   |   1 +
- 9 files changed, 876 insertions(+)
+ 9 files changed, 885 insertions(+)
  create mode 100644 device/testing/firmware-xiaomi-lisa/APKBUILD
  create mode 100644 device/testing/firmware-xiaomi-lisa/adsp.files
  create mode 100644 device/testing/firmware-xiaomi-lisa/cdsp.files
@@ -28,17 +28,26 @@ Firmware for the Xiaomi 11 Lite 5G NE, from the mainlining fork
 
 diff --git a/device/testing/firmware-xiaomi-lisa/APKBUILD b/device/testing/firmware-xiaomi-lisa/APKBUILD
 new file mode 100644
-index 0000000000..8aec9c8c25
+index 0000000000..adc83d30ff
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/APKBUILD
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,127 @@
 +# Reference: <https://nura.eco/devicepkg>
 +maintainer="Mateus Seiboth <mateusseiboth@gmail.com>"
-+
 +pkgname=firmware-xiaomi-lisa
 +pkgver=1
 +pkgrel=0
 +pkgdesc="Firmware for Xiaomi 11 Lite 5G NE / 11 LE"
++depends="
++	$pkgname-adsp
++	$pkgname-cdsp
++	$pkgname-gpu
++	$pkgname-ipa
++	$pkgname-modem
++	$pkgname-sensors
++	$pkgname-vpu
++	$pkgname-wpss
++"
 +subpackages="
 +	$pkgname-adsp
 +	$pkgname-cdsp

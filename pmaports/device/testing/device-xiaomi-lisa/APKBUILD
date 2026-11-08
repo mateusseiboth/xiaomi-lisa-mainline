@@ -10,16 +10,9 @@ arch="aarch64"
 options="!check !archcheck"
 depends="
 	alsa-ucm-conf-qcom-sc7280
-	android-tools
+	android-tools-mkbootimg
 	firmware-qcom-adreno-a660
-	firmware-xiaomi-lisa-adsp
-	firmware-xiaomi-lisa-cdsp
-	firmware-xiaomi-lisa-gpu
-	firmware-xiaomi-lisa-ipa
-	firmware-xiaomi-lisa-modem
-	firmware-xiaomi-lisa-sensors
-	firmware-xiaomi-lisa-vpu
-	firmware-xiaomi-lisa-wpss
+	firmware-xiaomi-lisa
 	linux-firmware-ath11k
 	linux-firmware-qca
 	linux-postmarketos-qcom-sc7280
@@ -31,7 +24,7 @@ depends="
 	unl0kr-fbforcerefresh
 "
 makedepends="
-	android-tools
+	android-tools-mkdtboimg
 	devicepkg-dev
 	dtc
 "
@@ -71,7 +64,7 @@ package() {
 		"$pkgdir/usr/share/alsa/ucm2/conf.d/sm8250/Xiaomi 11 Lite 5G NE.conf"
 }
 sha512sums="
-df8b400c90d70caa92ce3c63239c2596dba4733f9b2c9953d84e8cf189b1e5ee0623b0b4d64383058ba4e0563df3dfb0c77f351fea5d6b78edd3034a423fad0c  deviceinfo
+4fdeae2ee614af698127f11d1985550cc32628731fa22de85690cc39c2c21d3d3013922ba6923771761df6e9975f57d05986db274e5824430b3f2cdaa47abeb0  deviceinfo
 3dd47436d94793483e8834056a12d61d3eae56dcf109a20b2dc2b0b2912fbe02eae33b80848e2ed1a712f40f170b2fb12e75f13bc0f379e82e1d59643b5e32c3  dtbo-overlay.dts
 d7aebceca621529689d6b5fce6285f05fb4147f9a5f2c84b26c522a8464ada91ef8421ace3f18d8ad189d94cbda399af1a8a7b394b1d99e2f43b9b6e7943fbac  initfs-hook-panel-cycle.sh
 aa0fb23284f10dd69bbee6c9aa3d40f2cec042f935e72a6c28cf86ac765cf92e4a0d2370888d8fd433f9bb712f6b27869c2b7b84f84166bcd630c6d34e253288  kernel-cmdline.conf

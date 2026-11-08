@@ -1,4 +1,4 @@
-From 2db6114bd3a42a8afa1cbc0860662e9403664f88 Mon Sep 17 00:00:00 2001
+From 951dc6ccfcefae15736dd23d7d8108626c3ca9d5 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 3/4] device-xiaomi-lisa: new device
@@ -12,15 +12,15 @@ first DSI bring-up after the bootloader hand-off leaves it dark.
 Display, GPU, touchscreen, Wi-Fi, Bluetooth, battery, modem, speaker,
 earpiece, macro and ultra-wide cameras work.
 ---
- device/testing/device-xiaomi-lisa/APKBUILD    | 81 +++++++++++++++++++
- device/testing/device-xiaomi-lisa/deviceinfo  | 32 ++++++++
- .../device-xiaomi-lisa/dtbo-overlay.dts       | 17 ++++
+ device/testing/device-xiaomi-lisa/APKBUILD    | 74 +++++++++++++++++++
+ device/testing/device-xiaomi-lisa/deviceinfo  | 30 ++++++++
+ .../device-xiaomi-lisa/dtbo-overlay.dts       | 17 +++++
  .../initfs-hook-panel-cycle.sh                | 18 +++++
  .../device-xiaomi-lisa/kernel-cmdline.conf    |  1 +
  .../testing/device-xiaomi-lisa/modules-initfs |  5 ++
- .../testing/device-xiaomi-lisa/ucm-HiFi.conf  | 26 ++++++
+ .../testing/device-xiaomi-lisa/ucm-HiFi.conf  | 26 +++++++
  .../testing/device-xiaomi-lisa/ucm-lisa.conf  | 11 +++
- 8 files changed, 191 insertions(+)
+ 8 files changed, 182 insertions(+)
  create mode 100644 device/testing/device-xiaomi-lisa/APKBUILD
  create mode 100644 device/testing/device-xiaomi-lisa/deviceinfo
  create mode 100644 device/testing/device-xiaomi-lisa/dtbo-overlay.dts
@@ -32,10 +32,10 @@ earpiece, macro and ultra-wide cameras work.
 
 diff --git a/device/testing/device-xiaomi-lisa/APKBUILD b/device/testing/device-xiaomi-lisa/APKBUILD
 new file mode 100644
-index 0000000000..5ec693fd37
+index 0000000000..d367d3e96a
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/APKBUILD
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,74 @@
 +# Reference: <https://nura.eco/devicepkg>
 +maintainer="Mateus Seiboth <mateusseiboth@gmail.com>"
 +pkgname=device-xiaomi-lisa
@@ -48,16 +48,9 @@ index 0000000000..5ec693fd37
 +options="!check !archcheck"
 +depends="
 +	alsa-ucm-conf-qcom-sc7280
-+	android-tools
++	android-tools-mkbootimg
 +	firmware-qcom-adreno-a660
-+	firmware-xiaomi-lisa-adsp
-+	firmware-xiaomi-lisa-cdsp
-+	firmware-xiaomi-lisa-gpu
-+	firmware-xiaomi-lisa-ipa
-+	firmware-xiaomi-lisa-modem
-+	firmware-xiaomi-lisa-sensors
-+	firmware-xiaomi-lisa-vpu
-+	firmware-xiaomi-lisa-wpss
++	firmware-xiaomi-lisa
 +	linux-firmware-ath11k
 +	linux-firmware-qca
 +	linux-postmarketos-qcom-sc7280
@@ -69,7 +62,7 @@ index 0000000000..5ec693fd37
 +	unl0kr-fbforcerefresh
 +"
 +makedepends="
-+	android-tools
++	android-tools-mkdtboimg
 +	devicepkg-dev
 +	dtc
 +"
@@ -109,7 +102,7 @@ index 0000000000..5ec693fd37
 +		"$pkgdir/usr/share/alsa/ucm2/conf.d/sm8250/Xiaomi 11 Lite 5G NE.conf"
 +}
 +sha512sums="
-+df8b400c90d70caa92ce3c63239c2596dba4733f9b2c9953d84e8cf189b1e5ee0623b0b4d64383058ba4e0563df3dfb0c77f351fea5d6b78edd3034a423fad0c  deviceinfo
++4fdeae2ee614af698127f11d1985550cc32628731fa22de85690cc39c2c21d3d3013922ba6923771761df6e9975f57d05986db274e5824430b3f2cdaa47abeb0  deviceinfo
 +3dd47436d94793483e8834056a12d61d3eae56dcf109a20b2dc2b0b2912fbe02eae33b80848e2ed1a712f40f170b2fb12e75f13bc0f379e82e1d59643b5e32c3  dtbo-overlay.dts
 +d7aebceca621529689d6b5fce6285f05fb4147f9a5f2c84b26c522a8464ada91ef8421ace3f18d8ad189d94cbda399af1a8a7b394b1d99e2f43b9b6e7943fbac  initfs-hook-panel-cycle.sh
 +aa0fb23284f10dd69bbee6c9aa3d40f2cec042f935e72a6c28cf86ac765cf92e4a0d2370888d8fd433f9bb712f6b27869c2b7b84f84166bcd630c6d34e253288  kernel-cmdline.conf
@@ -119,10 +112,10 @@ index 0000000000..5ec693fd37
 +"
 diff --git a/device/testing/device-xiaomi-lisa/deviceinfo b/device/testing/device-xiaomi-lisa/deviceinfo
 new file mode 100644
-index 0000000000..dae3d5f752
+index 0000000000..dfe3982654
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/deviceinfo
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,30 @@
 +# Reference: <https://nura.eco/deviceinfo>
 +# Please use double quotes only. You can source this file in shell
 +# scripts.
@@ -140,8 +133,6 @@ index 0000000000..dae3d5f752
 +# Device related
 +deviceinfo_drm="true"
 +deviceinfo_chassis="handset"
-+deviceinfo_screen_width="1080"
-+deviceinfo_screen_height="2400"
 +
 +# Bootloader related
 +deviceinfo_flash_method="fastboot"

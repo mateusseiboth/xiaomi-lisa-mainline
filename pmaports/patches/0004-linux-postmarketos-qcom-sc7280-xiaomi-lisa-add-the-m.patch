@@ -1,4 +1,4 @@
-From 4e8ee631ef834e2f32a66a9a20850ddd809c4bdc Mon Sep 17 00:00:00 2001
+From 0a26f0c93dedee1f66d288cb1147af7ca87cd49c Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sun, 8 Nov 2026 00:15:57 -0400
 Subject: [PATCH 4/4] linux-postmarketos-qcom-sc7280: xiaomi-lisa: add the main
