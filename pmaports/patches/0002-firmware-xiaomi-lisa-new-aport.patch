@@ -1,4 +1,4 @@
-From aefe359074b9db73f838a3f5d023cdae56c2ac55 Mon Sep 17 00:00:00 2001
+From aa0522d0d82f262a64b237ba367c9295f25c6695 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 2/4] firmware-xiaomi-lisa: new aport
@@ -28,12 +28,12 @@ Firmware for the Xiaomi 11 Lite 5G NE, from the mainlining fork
 
 diff --git a/device/testing/firmware-xiaomi-lisa/APKBUILD b/device/testing/firmware-xiaomi-lisa/APKBUILD
 new file mode 100644
-index 0000000000..c8f5c4fd9a
+index 0000000000..8aec9c8c25
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/APKBUILD
 @@ -0,0 +1,118 @@
-+# Maintainer: Jens Reidel <adrian@travitia.xyz>
-+# Reference: <https://postmarketos.org/devicepkg>
++# Reference: <https://nura.eco/devicepkg>
++maintainer="Mateus Seiboth <mateusseiboth@gmail.com>"
 +
 +pkgname=firmware-xiaomi-lisa
 +pkgver=1

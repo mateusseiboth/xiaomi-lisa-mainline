@@ -1,4 +1,4 @@
-From d167e3de2f4a775aa5d87d594f8dde29000584fe Mon Sep 17 00:00:00 2001
+From 2db6114bd3a42a8afa1cbc0860662e9403664f88 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 3/4] device-xiaomi-lisa: new device
@@ -32,12 +32,12 @@ earpiece, macro and ultra-wide cameras work.
 
 diff --git a/device/testing/device-xiaomi-lisa/APKBUILD b/device/testing/device-xiaomi-lisa/APKBUILD
 new file mode 100644
-index 0000000000..35baffbd98
+index 0000000000..5ec693fd37
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/APKBUILD
 @@ -0,0 +1,81 @@
-+# Reference: <https://postmarketos.org/devicepkg>
-+maintainer="Jens Reidel <adrian@travitia.xyz>"
++# Reference: <https://nura.eco/devicepkg>
++maintainer="Mateus Seiboth <mateusseiboth@gmail.com>"
 +pkgname=device-xiaomi-lisa
 +pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE"
 +pkgver=1

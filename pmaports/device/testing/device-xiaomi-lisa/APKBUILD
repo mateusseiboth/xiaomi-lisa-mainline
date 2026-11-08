@@ -1,5 +1,5 @@
-# Reference: <https://postmarketos.org/devicepkg>
-maintainer="Jens Reidel <adrian@travitia.xyz>"
+# Reference: <https://nura.eco/devicepkg>
+maintainer="Mateus Seiboth <mateusseiboth@gmail.com>"
 pkgname=device-xiaomi-lisa
 pkgdesc="Xiaomi 11 Lite 5G NE / 11 LE"
 pkgver=1

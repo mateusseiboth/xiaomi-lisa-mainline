@@ -1,5 +1,5 @@
-# Maintainer: Jens Reidel <adrian@travitia.xyz>
-# Reference: <https://postmarketos.org/devicepkg>
+# Reference: <https://nura.eco/devicepkg>
+maintainer="Mateus Seiboth <mateusseiboth@gmail.com>"
 
 pkgname=firmware-xiaomi-lisa
 pkgver=1
