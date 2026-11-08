@@ -5,8 +5,10 @@ SM7325), booted straight from the **stock Xiaomi bootloader** (HyperOS 2),
 without U-Boot or a custom UEFI. Packaged for
 [Nura](https://nura.eco) (formerly postmarketOS).
 
-Display, GPU, touch, Wi-Fi, Bluetooth, battery, speaker, earpiece and the
-macro camera work. See [docs/hardware.md](docs/hardware.md).
+Display, GPU, touch, Wi-Fi, Bluetooth, battery, speaker, earpiece and all
+four cameras (main, ultra-wide, macro and front) work. The main and front
+sensors use new drivers written from the stock sensor data. See
+[docs/hardware.md](docs/hardware.md).
 
 ## What is here
 

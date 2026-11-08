@@ -4,7 +4,7 @@ maintainer="Luca Weiss <luca@lucaweiss.eu>"
 _flavor="postmarketos-qcom-sc7280"
 pkgname=linux-$_flavor
 pkgver=7.2.9
-pkgrel=4
+pkgrel=5
 pkgdesc="Mainline Kernel fork for SC7280/SM7325/QCM6490 devices"
 arch="aarch64"
 _carch="arm64"
@@ -50,6 +50,10 @@ source="
 	0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
 	0008-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-ultra-wide-camera.patch
 	0009-power-supply-qcom_battmgr-stop-polling-unsupported-properties.patch
+	0010-media-i2c-Add-Samsung-S5KGW3-image-sensor-driver.patch
+	0011-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-main-camera.patch
+	0012-media-i2c-Add-Samsung-S5K3T2-image-sensor-driver.patch
+	0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch
 "
 builddir="$srcdir/$_repo-$pkgver-sc7280"
 
@@ -88,7 +92,7 @@ package() {
 
 sha512sums="
 4852430f42a9e45833d590559875b869405d8d28d93fb9111f9b25f0b0d336c36d9be6a56a27da9c3cde642df17f792055729fa41256f51860794db3afdae674  linux-v7.2.9-sc7280.tar.gz
-8d09113f2f1d81eaa3776d57071c84d7bd3d68cdbc1a60143bdb9b340974554f471a00c5a0fa5e0eb2c55026bf457714a8eda28d09238b26b9d62d463a5f7c3e  config-postmarketos-qcom-sc7280.aarch64
+aecad6c9616d033d9307bd13b36a26ffa44dbdb4f5e146d6b5701211358634c32096fb6bc531e7026ec845043c7923d925b9285d56f2d4004a5fa8fb6535ac6b  config-postmarketos-qcom-sc7280.aarch64
 7eb57a1209ec20941fb41af8af15736b158cb4ef1a13aafeeef384380f36061b4e80cfadba4abe3d129660085aba0cc13363dddd1d12abc26e2f48949e9b9a62  0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
 c7630ec480dc073cc115edd971b0eea4b61b5c089f5f01a833821fb4d920100b71639a9c7ae3c4681d52d9e4b08a5b90ca651285531cad4e18e0814ce1a77dfb  0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
 2a04582fc3ccd2471fcc228b59b4d04d2c427bb408318464f679d6fb1e17636dc66e75153e1e0103b9ed98704de4f57c63dc0b13fbb39aebe13f919a685aacd9  0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
@@ -98,4 +102,8 @@ c7630ec480dc073cc115edd971b0eea4b61b5c089f5f01a833821fb4d920100b71639a9c7ae3c468
 08b11b61e8c213709a807309637a7d8e16ab2d498c1e052a2fac231a9254d441dba1e480c6758aa413b75b4f98af7e05bfccb31adfa0d93ecc7752768d9858c9  0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
 6902156340ff2bf5c612cdffa94f922e2c6a2dee95dc6044bdb6bf9766a57897addc56af49130056836a0bdeb0a474430d8db15bccac28f53f8e2c9b70c47257  0008-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-ultra-wide-camera.patch
 e5c062b257af78ae9a0ea5c78f03c2eb3d512057b0c66f7aa0c414e1d926e2ccc44ecd00ee65077c9dac69bef37dbb84373fd25351e152ce373413ec99470624  0009-power-supply-qcom_battmgr-stop-polling-unsupported-properties.patch
+972f535581732c0779cb6674463609255eaee145e5cff810e12bf3c2515780681a5570cc6b1f3262abf445ff8c2009a3ad077a13be6c405fc8582787c3186479  0010-media-i2c-Add-Samsung-S5KGW3-image-sensor-driver.patch
+0913c89dd5e9dbff38b1ffbcf008d3c136c0258d8ec99e15701801a0a7dd4ac01f0d3a2f01c0d8e69c22cd1f6541d04c3bebdaacd7348b10da2702925336f322  0011-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-main-camera.patch
+a8322fc9e878ef3910b429aca446efbdc229908f44f275d353ddcadaecdd702a7fe29046840178587c00bee5c4e9673efd2dfad0f69f101e55065747a52373cb  0012-media-i2c-Add-Samsung-S5K3T2-image-sensor-driver.patch
+4390f8512c3131a87a7d45d729d3ddee4d83c63db190b4ccee42e6eae6dab65b75689ac180e3d5f56deefb470888c0287e12b4bc8563ffb31968806366bdc2be  0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch
 "

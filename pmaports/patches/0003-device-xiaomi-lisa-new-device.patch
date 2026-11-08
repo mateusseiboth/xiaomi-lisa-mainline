@@ -1,7 +1,7 @@
 From 7a9e67a2b587508a7412cb24300740b41eb43d28 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
-Subject: [PATCH 3/3] device-xiaomi-lisa: new device
+Subject: [PATCH 3/4] device-xiaomi-lisa: new device
 
 Xiaomi 11 Lite 5G NE / 11 LE (SM7325). Boots straight from the stock ABL:
 header v3 boot.img and vendor_boot with the stock load addresses, a dtbo
