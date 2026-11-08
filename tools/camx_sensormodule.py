@@ -80,18 +80,27 @@ def reg_table(nodes, values, idx):
     return out
 
 
+# The four settings that follow the gain functions carry no name of their own
+# in the blob; the schema order gives them.
+SETTINGS_AFTER_GAIN = ("streamOn", "streamOff", "groupHoldOn", "groupHoldOff")
+
+
 def tables(nodes):
     """Classify the regSetting nodes: per-mode tables first, then the rest."""
     result = []
     mode = -1
+    after_gain = []
     for i, n in enumerate(nodes):
         if n["name"] == "streamConfiguration" and n["size"]:
             mode += 1
+        if n["name"] == "regToRealGain":
+            after_gain = list(SETTINGS_AFTER_GAIN)
         if n["name"] != "regSetting":
             continue
         before = next((nodes[j]["name"] for j in range(i - 1, max(i - 12, 0), -1)
                        if nodes[j]["name"] not in REG_NODES + ("regSetting",) and nodes[j]["size"]), "?")
-        result.append((i, mode, before))
+        label = after_gain.pop(0) if after_gain else before
+        result.append((i, mode, label))
     return result
 
 

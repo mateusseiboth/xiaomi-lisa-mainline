@@ -1,6 +1,21 @@
 import unittest
 
-from camx_sensormodule import c_table, c_tables
+from camx_sensormodule import c_table, c_tables, tables
+
+
+def node(name, size=4):
+    return {"name": name, "type": 0, "size": size, "id": 0}
+
+
+class TablesTest(unittest.TestCase):
+    def test_names_the_tables_after_the_gain_functions(self):
+        nodes = [node("realToRegGain", 1), node("regToRealGain", 1)]
+        for _ in range(4):
+            nodes += [node("regSetting", 40), node("slaveAddr"), node("registerData")]
+        nodes += [node("initSettings", 12), node("regSetting", 40)]
+        labels = [label for _, _, label in tables(nodes)]
+        self.assertEqual(labels, ["streamOn", "streamOff", "groupHoldOn",
+                                  "groupHoldOff", "initSettings"])
 
 
 class CTableTest(unittest.TestCase):
