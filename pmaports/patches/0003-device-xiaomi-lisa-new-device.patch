@@ -1,4 +1,4 @@
-From 7a9e67a2b587508a7412cb24300740b41eb43d28 Mon Sep 17 00:00:00 2001
+From d167e3de2f4a775aa5d87d594f8dde29000584fe Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 3/4] device-xiaomi-lisa: new device
@@ -12,30 +12,30 @@ first DSI bring-up after the bootloader hand-off leaves it dark.
 Display, GPU, touchscreen, Wi-Fi, Bluetooth, battery, modem, speaker,
 earpiece, macro and ultra-wide cameras work.
 ---
- device/testing/device-xiaomi-lisa/APKBUILD    |  73 ++++++++++++++++++
- device/testing/device-xiaomi-lisa/deviceinfo  |  37 +++++++++
- .../device-xiaomi-lisa/dtbo-overlay.dts       |  17 ++++
- device/testing/device-xiaomi-lisa/dtbo.img    | Bin 0 -> 4096 bytes
- .../initfs-hook-panel-cycle.sh                |  18 +++++
- .../testing/device-xiaomi-lisa/modules-initfs |   5 ++
- .../testing/device-xiaomi-lisa/ucm-HiFi.conf  |  26 +++++++
- .../testing/device-xiaomi-lisa/ucm-lisa.conf  |  11 +++
- 8 files changed, 187 insertions(+)
+ device/testing/device-xiaomi-lisa/APKBUILD    | 81 +++++++++++++++++++
+ device/testing/device-xiaomi-lisa/deviceinfo  | 32 ++++++++
+ .../device-xiaomi-lisa/dtbo-overlay.dts       | 17 ++++
+ .../initfs-hook-panel-cycle.sh                | 18 +++++
+ .../device-xiaomi-lisa/kernel-cmdline.conf    |  1 +
+ .../testing/device-xiaomi-lisa/modules-initfs |  5 ++
+ .../testing/device-xiaomi-lisa/ucm-HiFi.conf  | 26 ++++++
+ .../testing/device-xiaomi-lisa/ucm-lisa.conf  | 11 +++
+ 8 files changed, 191 insertions(+)
  create mode 100644 device/testing/device-xiaomi-lisa/APKBUILD
  create mode 100644 device/testing/device-xiaomi-lisa/deviceinfo
  create mode 100644 device/testing/device-xiaomi-lisa/dtbo-overlay.dts
- create mode 100644 device/testing/device-xiaomi-lisa/dtbo.img
  create mode 100644 device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh
+ create mode 100644 device/testing/device-xiaomi-lisa/kernel-cmdline.conf
  create mode 100644 device/testing/device-xiaomi-lisa/modules-initfs
  create mode 100644 device/testing/device-xiaomi-lisa/ucm-HiFi.conf
  create mode 100644 device/testing/device-xiaomi-lisa/ucm-lisa.conf
 
 diff --git a/device/testing/device-xiaomi-lisa/APKBUILD b/device/testing/device-xiaomi-lisa/APKBUILD
 new file mode 100644
-index 0000000..f3918ca
+index 0000000000..35baffbd98
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/APKBUILD
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,81 @@
 +# Reference: <https://postmarketos.org/devicepkg>
 +maintainer="Jens Reidel <adrian@travitia.xyz>"
 +pkgname=device-xiaomi-lisa
@@ -68,12 +68,16 @@ index 0000000..f3918ca
 +	soc-qcom-qbootctl
 +	unl0kr-fbforcerefresh
 +"
-+makedepends="devicepkg-dev"
++makedepends="
++	android-tools
++	devicepkg-dev
++	dtc
++"
 +source="
 +	deviceinfo
 +	dtbo-overlay.dts
-+	dtbo.img
 +	initfs-hook-panel-cycle.sh
++	kernel-cmdline.conf
 +	modules-initfs
 +	ucm-HiFi.conf
 +	ucm-lisa.conf
@@ -81,12 +85,16 @@ index 0000000..f3918ca
 +
 +build() {
 +	devicepkg_build $startdir $pkgname
++
++	# Empty overlay the Xiaomi ABL needs to find in dtbo, see dtbo-overlay.dts
++	dtc -O dtb -o "$srcdir"/dtbo-overlay.dtbo -@ "$srcdir"/dtbo-overlay.dts
++	mkdtboimg create "$srcdir"/dtbo.img --page_size=4096 \
++		"$srcdir"/dtbo-overlay.dtbo
 +}
 +
 +package() {
 +	devicepkg_package $startdir $pkgname
 +
-+	# Empty overlay the Xiaomi ABL needs to find in dtbo, see dtbo-overlay.dts
 +	install -Dm644 "$srcdir"/dtbo.img "$pkgdir"/boot/dtbo.img
 +
 +	install -Dm644 "$srcdir"/initfs-hook-panel-cycle.sh \
@@ -101,21 +109,21 @@ index 0000000..f3918ca
 +		"$pkgdir/usr/share/alsa/ucm2/conf.d/sm8250/Xiaomi 11 Lite 5G NE.conf"
 +}
 +sha512sums="
-+560a85daffdfbe373098b9fa500f75beb5cf97a1936c4681b453f8f8ca409da131f5256f4e0c1f60a7dadf7a4172c927e9be90c31901d1c28571bf4021f539bc  deviceinfo
++df8b400c90d70caa92ce3c63239c2596dba4733f9b2c9953d84e8cf189b1e5ee0623b0b4d64383058ba4e0563df3dfb0c77f351fea5d6b78edd3034a423fad0c  deviceinfo
 +3dd47436d94793483e8834056a12d61d3eae56dcf109a20b2dc2b0b2912fbe02eae33b80848e2ed1a712f40f170b2fb12e75f13bc0f379e82e1d59643b5e32c3  dtbo-overlay.dts
-+a94913063158d0bc38f8d997a3de175ce5fb2af163df066f752c5e34da016e61e52a00a981a06e28ad3ccb925636d13823a4f8f455217f94cff4f1e11bc423dd  dtbo.img
 +d7aebceca621529689d6b5fce6285f05fb4147f9a5f2c84b26c522a8464ada91ef8421ace3f18d8ad189d94cbda399af1a8a7b394b1d99e2f43b9b6e7943fbac  initfs-hook-panel-cycle.sh
++aa0fb23284f10dd69bbee6c9aa3d40f2cec042f935e72a6c28cf86ac765cf92e4a0d2370888d8fd433f9bb712f6b27869c2b7b84f84166bcd630c6d34e253288  kernel-cmdline.conf
 +7b5d121fb060c4c339f2950ed3378a21a677098863a68797164dbbf3da6039c38a50a17f8839f7403a6d460d0b9521604886407fc0bac583a801f6afa5ea04ab  modules-initfs
 +ccc2d75c7c970cea3ee250b4b0489cb91e4144a2b3318f726da6e18250b4b20887667d97bff95d6ae9e96339f3c8ba20d68de44ffa123a434024b084e430b36e  ucm-HiFi.conf
 +e5b73faf450566e53a90fb775d1121c99d09cea002c1cb71db74577c0dc82ab89df4207c78fb4cb08de9ce159af4df0789de06c664acf5d93f40e3b0710b04a4  ucm-lisa.conf
 +"
 diff --git a/device/testing/device-xiaomi-lisa/deviceinfo b/device/testing/device-xiaomi-lisa/deviceinfo
 new file mode 100644
-index 0000000..d6ca8bb
+index 0000000000..dae3d5f752
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/deviceinfo
-@@ -0,0 +1,37 @@
-+# Reference: <https://postmarketos.org/deviceinfo>
+@@ -0,0 +1,32 @@
++# Reference: <https://nura.eco/deviceinfo>
 +# Please use double quotes only. You can source this file in shell
 +# scripts.
 +
@@ -130,19 +138,14 @@ index 0000000..d6ca8bb
 +deviceinfo_flash_kernel_on_update="true"
 +
 +# Device related
-+deviceinfo_gpu_accelerated="true"
++deviceinfo_drm="true"
 +deviceinfo_chassis="handset"
-+deviceinfo_keyboard="false"
-+deviceinfo_external_storage="false"
 +deviceinfo_screen_width="1080"
 +deviceinfo_screen_height="2400"
 +
 +# Bootloader related
 +deviceinfo_flash_method="fastboot"
-+deviceinfo_kernel_cmdline="console=tty0 cma=256M"
 +deviceinfo_generate_bootimg="true"
-+deviceinfo_bootimg_qcdt="false"
-+deviceinfo_bootimg_dtb_second="false"
 +deviceinfo_flash_pagesize="4096"
 +# Same load addresses as the stock vendor_boot, the ABL rejects the defaults.
 +# boot-deploy does not pass the flash offsets to mkbootimg for header v3.
@@ -154,7 +157,7 @@ index 0000000..d6ca8bb
 +deviceinfo_flash_fastboot_partition_dtbo="dtbo"
 diff --git a/device/testing/device-xiaomi-lisa/dtbo-overlay.dts b/device/testing/device-xiaomi-lisa/dtbo-overlay.dts
 new file mode 100644
-index 0000000..e095a80
+index 0000000000..e095a800cf
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/dtbo-overlay.dts
 @@ -0,0 +1,17 @@
@@ -175,24 +178,9 @@ index 0000000..e095a80
 +&framebuffer_mem {
 +	xiaomi,mainline-dtbo-noop;
 +};
-diff --git a/device/testing/device-xiaomi-lisa/dtbo.img b/device/testing/device-xiaomi-lisa/dtbo.img
-new file mode 100644
-index 0000000000000000000000000000000000000000..0ea73ae496e1ef8b4135f69b4cb566272ee60a08
-GIT binary patch
-literal 4096
-zcmeH?!Ab)$5QhJ#h$4a>1TV@S1-odgMd_&*@lrf{5JI+_ErHEu&2FW>h40}5_!_-=
-z@ELpqaV49y1^Wu~!H}8o&p$JtAMd9Cn*)eKF#jIF!`=W4L$Stu|MweSa|^I*0A~OW
-zfu+F{fS<KSv~wJr0FGSpsD#lf>UN`%s%6x_j~?zqpVJ%z*q*hTPOd6}=dsb9O5a@d
-z`U{^OKbw68ch~3sPQb7iyjW(%M9ZQcUba6@vjyP1X`06E#kqNrHW#m)FMJ(602?6~
-z=b4&K%gRfZH;gV;=7U<;iL3{H%Bpu)n^fi)8(oT8CAsv6=t{>b^?721O<m<J5U$oj
-o6}c*8oYskn3u8)TR%n?_vrJm9rEV7`2!bF8f*=TjAc+6`0c2%T`2YX_
-
-literal 0
-HcmV?d00001
-
 diff --git a/device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh b/device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh
 new file mode 100644
-index 0000000..a8195a1
+index 0000000000..a8195a1b2a
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/initfs-hook-panel-cycle.sh
 @@ -0,0 +1,18 @@
@@ -214,9 +202,16 @@ index 0000000..a8195a1
 +echo 1 > "$fb/blank"
 +sleep 0.2
 +echo 0 > "$fb/blank"
+diff --git a/device/testing/device-xiaomi-lisa/kernel-cmdline.conf b/device/testing/device-xiaomi-lisa/kernel-cmdline.conf
+new file mode 100644
+index 0000000000..3621b010e2
+--- /dev/null
++++ b/device/testing/device-xiaomi-lisa/kernel-cmdline.conf
+@@ -0,0 +1 @@
++console=tty0 cma=256M
 diff --git a/device/testing/device-xiaomi-lisa/modules-initfs b/device/testing/device-xiaomi-lisa/modules-initfs
 new file mode 100644
-index 0000000..400013e
+index 0000000000..400013eeb5
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/modules-initfs
 @@ -0,0 +1,5 @@
@@ -227,7 +222,7 @@ index 0000000..400013e
 +panel-csot-vtdr6130
 diff --git a/device/testing/device-xiaomi-lisa/ucm-HiFi.conf b/device/testing/device-xiaomi-lisa/ucm-HiFi.conf
 new file mode 100644
-index 0000000..5f86a38
+index 0000000000..5f86a3846d
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/ucm-HiFi.conf
 @@ -0,0 +1,26 @@
@@ -259,7 +254,7 @@ index 0000000..5f86a38
 +}
 diff --git a/device/testing/device-xiaomi-lisa/ucm-lisa.conf b/device/testing/device-xiaomi-lisa/ucm-lisa.conf
 new file mode 100644
-index 0000000..633d095
+index 0000000000..633d09574a
 --- /dev/null
 +++ b/device/testing/device-xiaomi-lisa/ucm-lisa.conf
 @@ -0,0 +1,11 @@

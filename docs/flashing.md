@@ -10,7 +10,7 @@ The bootloader must be unlocked.
 ## Build
 
 ```sh
-git clone https://gitlab.nura.eco/postmarketOS/pmaports.git
+git clone https://gitlab.nura.eco/nura/pmaports.git
 cd pmaports
 git am /path/to/xiaomi-lisa-mainline/pmaports/patches/*.patch
 cd ..
@@ -19,7 +19,7 @@ pmbootstrap install
 pmbootstrap export out/
 ```
 
-The patches apply on pmaports `d58ca1a2` (2026-11-07). The packages are also
+The patches apply on pmaports `80c363b5` (2026-11-08). The packages are also
 available as plain directories under `pmaports/` in this repository.
 
 ## Flash

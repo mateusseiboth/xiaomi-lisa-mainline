@@ -1,4 +1,4 @@
-# Reference: <https://postmarketos.org/deviceinfo>
+# Reference: <https://nura.eco/deviceinfo>
 # Please use double quotes only. You can source this file in shell
 # scripts.
 
@@ -13,19 +13,14 @@ deviceinfo_arch="aarch64"
 deviceinfo_flash_kernel_on_update="true"
 
 # Device related
-deviceinfo_gpu_accelerated="true"
+deviceinfo_drm="true"
 deviceinfo_chassis="handset"
-deviceinfo_keyboard="false"
-deviceinfo_external_storage="false"
 deviceinfo_screen_width="1080"
 deviceinfo_screen_height="2400"
 
 # Bootloader related
 deviceinfo_flash_method="fastboot"
-deviceinfo_kernel_cmdline="console=tty0 cma=256M"
 deviceinfo_generate_bootimg="true"
-deviceinfo_bootimg_qcdt="false"
-deviceinfo_bootimg_dtb_second="false"
 deviceinfo_flash_pagesize="4096"
 # Same load addresses as the stock vendor_boot, the ABL rejects the defaults.
 # boot-deploy does not pass the flash offsets to mkbootimg for header v3.

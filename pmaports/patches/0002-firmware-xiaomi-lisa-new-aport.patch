@@ -1,4 +1,4 @@
-From a237f865da587382f55956a0e478909e087dcaef Mon Sep 17 00:00:00 2001
+From aefe359074b9db73f838a3f5d023cdae56c2ac55 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 2/4] firmware-xiaomi-lisa: new aport
@@ -28,7 +28,7 @@ Firmware for the Xiaomi 11 Lite 5G NE, from the mainlining fork
 
 diff --git a/device/testing/firmware-xiaomi-lisa/APKBUILD b/device/testing/firmware-xiaomi-lisa/APKBUILD
 new file mode 100644
-index 0000000..c8f5c4f
+index 0000000000..c8f5c4fd9a
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/APKBUILD
 @@ -0,0 +1,118 @@
@@ -152,7 +152,7 @@ index 0000000..c8f5c4f
 +"
 diff --git a/device/testing/firmware-xiaomi-lisa/adsp.files b/device/testing/firmware-xiaomi-lisa/adsp.files
 new file mode 100644
-index 0000000..f2126d1
+index 0000000000..f2126d1f91
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/adsp.files
 @@ -0,0 +1,4 @@
@@ -162,7 +162,7 @@ index 0000000..f2126d1
 +./lib/firmware/qcom/sm7325/xiaomi/lisa/adsp.mbn
 diff --git a/device/testing/firmware-xiaomi-lisa/cdsp.files b/device/testing/firmware-xiaomi-lisa/cdsp.files
 new file mode 100644
-index 0000000..dc9e2ca
+index 0000000000..dc9e2ca78b
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/cdsp.files
 @@ -0,0 +1,2 @@
@@ -170,21 +170,21 @@ index 0000000..dc9e2ca
 +./lib/firmware/qcom/sm7325/xiaomi/lisa/cdsp.mbn
 diff --git a/device/testing/firmware-xiaomi-lisa/gpu.files b/device/testing/firmware-xiaomi-lisa/gpu.files
 new file mode 100644
-index 0000000..43c6def
+index 0000000000..43c6def15f
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/gpu.files
 @@ -0,0 +1 @@
 +./lib/firmware/qcom/sm7325/xiaomi/lisa/a660_zap.mbn
 diff --git a/device/testing/firmware-xiaomi-lisa/ipa.files b/device/testing/firmware-xiaomi-lisa/ipa.files
 new file mode 100644
-index 0000000..881e5e8
+index 0000000000..881e5e8275
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/ipa.files
 @@ -0,0 +1 @@
 +./lib/firmware/qcom/sm7325/xiaomi/lisa/ipa_fws.mbn
 diff --git a/device/testing/firmware-xiaomi-lisa/modem.files b/device/testing/firmware-xiaomi-lisa/modem.files
 new file mode 100644
-index 0000000..953d35e
+index 0000000000..953d35ebe4
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/modem.files
 @@ -0,0 +1,356 @@
@@ -546,7 +546,7 @@ index 0000000..953d35e
 +./lib/firmware/qcom/sm7325/xiaomi/lisa/modem.mbn
 diff --git a/device/testing/firmware-xiaomi-lisa/sensors.files b/device/testing/firmware-xiaomi-lisa/sensors.files
 new file mode 100644
-index 0000000..0386c8f
+index 0000000000..0386c8f4bd
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/sensors.files
 @@ -0,0 +1,392 @@
@@ -944,14 +944,14 @@ index 0000000..0386c8f
 +./usr/share/qcom/socinfo/soc_id
 diff --git a/device/testing/firmware-xiaomi-lisa/vpu.files b/device/testing/firmware-xiaomi-lisa/vpu.files
 new file mode 100644
-index 0000000..ce821a9
+index 0000000000..ce821a9158
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/vpu.files
 @@ -0,0 +1 @@
 +./lib/firmware/qcom/sm7325/xiaomi/lisa/vpu20_1v.mbn
 diff --git a/device/testing/firmware-xiaomi-lisa/wpss.files b/device/testing/firmware-xiaomi-lisa/wpss.files
 new file mode 100644
-index 0000000..68e6cb5
+index 0000000000..68e6cb56a2
 --- /dev/null
 +++ b/device/testing/firmware-xiaomi-lisa/wpss.files
 @@ -0,0 +1 @@

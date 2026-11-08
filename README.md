@@ -33,7 +33,7 @@ Xiaomi's format. Details in [docs/abl-requirements.md](docs/abl-requirements.md)
 ## Upstreaming
 
 - Device and firmware packages: merge request to
-  [pmaports](https://gitlab.nura.eco/postmarketOS/pmaports).
+  [pmaports](https://gitlab.nura.eco/nura/pmaports).
 - Kernel patches: [sc7280-mainline/linux](https://github.com/sc7280-mainline/linux)
   and then the kernel mailing lists.
 

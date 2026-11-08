@@ -1,4 +1,4 @@
-From 8c6abef07ed5f12e969c93fff683b68a209c5b40 Mon Sep 17 00:00:00 2001
+From 2c6ac43b7651ef7a57cb1e0fe4faa32e839c6bf9 Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sat, 7 Nov 2026 16:37:03 -0400
 Subject: [PATCH 1/4] linux-postmarketos-qcom-sc7280: add Xiaomi 11 Lite 5G NE
@@ -42,7 +42,7 @@ numbers differently: each poll used to wait one second for nothing.
 
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch b/device/community/linux-postmarketos-qcom-sc7280/0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
 new file mode 100644
-index 0000000..7542436
+index 0000000000..7542436398
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
 @@ -0,0 +1,1147 @@
@@ -1195,7 +1195,7 @@ index 0000000..7542436
 ++};
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch b/device/community/linux-postmarketos-qcom-sc7280/0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
 new file mode 100644
-index 0000000..1b93415
+index 0000000000..1b9341573f
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
 @@ -0,0 +1,87 @@
@@ -1288,7 +1288,7 @@ index 0000000..1b93415
 ++};
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch b/device/community/linux-postmarketos-qcom-sc7280/0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
 new file mode 100644
-index 0000000..38ac670
+index 0000000000..38ac670a04
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
 @@ -0,0 +1,564 @@
@@ -1858,7 +1858,7 @@ index 0000000..38ac670
 ++MODULE_LICENSE("GPL");
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch b/device/community/linux-postmarketos-qcom-sc7280/0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
 new file mode 100644
-index 0000000..3354b30
+index 0000000000..3354b3029a
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0004-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-display.patch
 @@ -0,0 +1,92 @@
@@ -1956,7 +1956,7 @@ index 0000000..3354b30
 ++};
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch b/device/community/linux-postmarketos-qcom-sc7280/0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
 new file mode 100644
-index 0000000..c5cff34
+index 0000000000..c5cff340a4
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0005-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-speaker-and-earpiece.patch
 @@ -0,0 +1,150 @@
@@ -2112,7 +2112,7 @@ index 0000000..c5cff34
 ++};
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch b/device/community/linux-postmarketos-qcom-sc7280/0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
 new file mode 100644
-index 0000000..aa537c1
+index 0000000000..aa537c16bf
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0006-media-i2c-Add-S5K5E9-camera-sensor-driver.patch
 @@ -0,0 +1,865 @@
@@ -2983,7 +2983,7 @@ index 0000000..aa537c1
 ++MODULE_LICENSE("GPL");
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch b/device/community/linux-postmarketos-qcom-sc7280/0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
 new file mode 100644
-index 0000000..f2ae4ac
+index 0000000000..f2ae4ac26c
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0007-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-macro-camera.patch
 @@ -0,0 +1,96 @@
@@ -3085,7 +3085,7 @@ index 0000000..f2ae4ac
 ++};
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0008-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-ultra-wide-camera.patch b/device/community/linux-postmarketos-qcom-sc7280/0008-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-ultra-wide-camera.patch
 new file mode 100644
-index 0000000..83f844b
+index 0000000000..83f844b5a6
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0008-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-ultra-wide-camera.patch
 @@ -0,0 +1,62 @@
@@ -3153,7 +3153,7 @@ index 0000000..83f844b
 + &cci2_default {
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0009-power-supply-qcom_battmgr-stop-polling-unsupported-properties.patch b/device/community/linux-postmarketos-qcom-sc7280/0009-power-supply-qcom_battmgr-stop-polling-unsupported-properties.patch
 new file mode 100644
-index 0000000..638ebb1
+index 0000000000..638ebb1cd7
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0009-power-supply-qcom_battmgr-stop-polling-unsupported-properties.patch
 @@ -0,0 +1,79 @@
@@ -3237,7 +3237,7 @@ index 0000000..638ebb1
 + 	complete(&battmgr->ack);
 + }
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/APKBUILD b/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
-index 8a276de..d7039ab 100644
+index 8a276de990..d7039ab51d 100644
 --- a/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
 +++ b/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
 @@ -4,7 +4,7 @@ maintainer="Luca Weiss <luca@lucaweiss.eu>"
@@ -3282,7 +3282,7 @@ index 8a276de..d7039ab 100644
 +e5c062b257af78ae9a0ea5c78f03c2eb3d512057b0c66f7aa0c414e1d926e2ccc44ecd00ee65077c9dac69bef37dbb84373fd25351e152ce373413ec99470624  0009-power-supply-qcom_battmgr-stop-polling-unsupported-properties.patch
  "
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64 b/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
-index cba75f4..ef546f0 100644
+index cba75f4e3e..ef546f0663 100644
 --- a/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
 +++ b/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
 @@ -4356,7 +4356,7 @@ CONFIG_VIDEO_CAMERA_SENSOR=y

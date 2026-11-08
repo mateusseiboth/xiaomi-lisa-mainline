@@ -1,4 +1,4 @@
-From 81e5e3a0369c2e9d8815f34316d0ef1dffd577ea Mon Sep 17 00:00:00 2001
+From 647eb9f6941c77dbf96aefeb4df4b723c2c444cc Mon Sep 17 00:00:00 2001
 From: Mateus Seiboth <mateusseiboth@gmail.com>
 Date: Sun, 8 Nov 2026 00:15:57 -0400
 Subject: [PATCH 4/4] linux-postmarketos-qcom-sc7280: xiaomi-lisa: add the main
@@ -24,7 +24,7 @@ device tree.
 
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0010-media-i2c-Add-Samsung-S5KGW3-image-sensor-driver.patch b/device/community/linux-postmarketos-qcom-sc7280/0010-media-i2c-Add-Samsung-S5KGW3-image-sensor-driver.patch
 new file mode 100644
-index 0000000..8f6c6e2
+index 0000000000..8f6c6e23ad
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0010-media-i2c-Add-Samsung-S5KGW3-image-sensor-driver.patch
 @@ -0,0 +1,2726 @@
@@ -2756,7 +2756,7 @@ index 0000000..8f6c6e2
 ++MODULE_LICENSE("GPL");
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0011-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-main-camera.patch b/device/community/linux-postmarketos-qcom-sc7280/0011-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-main-camera.patch
 new file mode 100644
-index 0000000..cee6f8c
+index 0000000000..cee6f8c15a
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0011-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-main-camera.patch
 @@ -0,0 +1,86 @@
@@ -2848,7 +2848,7 @@ index 0000000..cee6f8c
 + 		compatible = "samsung,s5k5e9";
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0012-media-i2c-Add-Samsung-S5K3T2-image-sensor-driver.patch b/device/community/linux-postmarketos-qcom-sc7280/0012-media-i2c-Add-Samsung-S5K3T2-image-sensor-driver.patch
 new file mode 100644
-index 0000000..f07c113
+index 0000000000..f07c11345f
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0012-media-i2c-Add-Samsung-S5K3T2-image-sensor-driver.patch
 @@ -0,0 +1,1220 @@
@@ -4074,7 +4074,7 @@ index 0000000..f07c113
 ++MODULE_LICENSE("GPL");
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch b/device/community/linux-postmarketos-qcom-sc7280/0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch
 new file mode 100644
-index 0000000..4238ad6
+index 0000000000..4238ad6d4f
 --- /dev/null
 +++ b/device/community/linux-postmarketos-qcom-sc7280/0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch
 @@ -0,0 +1,127 @@
@@ -4206,7 +4206,7 @@ index 0000000..4238ad6
 + &cci0_i2c1 {
 + 	camera@10 {
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/APKBUILD b/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
-index d7039ab..cf108ae 100644
+index d7039ab51d..cf108aea29 100644
 --- a/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
 +++ b/device/community/linux-postmarketos-qcom-sc7280/APKBUILD
 @@ -4,7 +4,7 @@ maintainer="Luca Weiss <luca@lucaweiss.eu>"
@@ -4248,7 +4248,7 @@ index d7039ab..cf108ae 100644
 +4390f8512c3131a87a7d45d729d3ddee4d83c63db190b4ccee42e6eae6dab65b75689ac180e3d5f56deefb470888c0287e12b4bc8563ffb31968806366bdc2be  0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch
  "
 diff --git a/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64 b/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
-index ef546f0..b682fc3 100644
+index ef546f0663..b682fc3e3c 100644
 --- a/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
 +++ b/device/community/linux-postmarketos-qcom-sc7280/config-postmarketos-qcom-sc7280.aarch64
 @@ -4414,9 +4414,11 @@ CONFIG_VIDEO_IMX858=m
