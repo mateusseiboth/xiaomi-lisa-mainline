@@ -4,7 +4,7 @@ maintainer="Luca Weiss <luca@lucaweiss.eu>"
 _flavor="postmarketos-qcom-sc7280"
 pkgname=linux-$_flavor
 pkgver=7.2.9
-pkgrel=5
+pkgrel=6
 pkgdesc="Mainline Kernel fork for SC7280/SM7325/QCM6490 devices"
 arch="aarch64"
 _carch="arm64"
@@ -54,6 +54,7 @@ source="
 	0011-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-main-camera.patch
 	0012-media-i2c-Add-Samsung-S5K3T2-image-sensor-driver.patch
 	0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch
+0014-arm64-dts-qcom-sm7325-xiaomi-lisa-let-Linux-load-the.patch
 "
 builddir="$srcdir/$_repo-$pkgver-sc7280"
 
@@ -106,4 +107,5 @@ e5c062b257af78ae9a0ea5c78f03c2eb3d512057b0c66f7aa0c414e1d926e2ccc44ecd00ee65077c
 0913c89dd5e9dbff38b1ffbcf008d3c136c0258d8ec99e15701801a0a7dd4ac01f0d3a2f01c0d8e69c22cd1f6541d04c3bebdaacd7348b10da2702925336f322  0011-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-main-camera.patch
 a8322fc9e878ef3910b429aca446efbdc229908f44f275d353ddcadaecdd702a7fe29046840178587c00bee5c4e9673efd2dfad0f69f101e55065747a52373cb  0012-media-i2c-Add-Samsung-S5K3T2-image-sensor-driver.patch
 4390f8512c3131a87a7d45d729d3ddee4d83c63db190b4ccee42e6eae6dab65b75689ac180e3d5f56deefb470888c0287e12b4bc8563ffb31968806366bdc2be  0013-arm64-dts-qcom-sm7325-xiaomi-lisa-enable-the-front-camera.patch
+8e8cea929840a204795b3dfcdfb6b69e90161348445a66639202288adf1f15b67ddd7625a707f8b908e2f0fe4b3d6181d12276afb60ed4dfced3ae9e26177a96  0014-arm64-dts-qcom-sm7325-xiaomi-lisa-let-Linux-load-the.patch
 "

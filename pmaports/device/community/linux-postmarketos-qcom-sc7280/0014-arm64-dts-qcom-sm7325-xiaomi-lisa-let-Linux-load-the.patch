@@ -1,0 +1,35 @@
+From 026d56a2afe0fddaf49d7359425df9253b2e8924 Mon Sep 17 00:00:00 2001
+From: Mateus Seiboth <mateusseiboth@gmail.com>
+Date: Mon, 16 Nov 2026 22:07:00 -0400
+Subject: [PATCH] arm64: dts: qcom: sm7325-xiaomi-lisa: let Linux load the IPA
+ firmware
+
+The IPA node named its firmware but neither a loader nor a memory region,
+so the driver stopped at "error -19 getting memory-region resource": no
+rmnet interface came up and ModemManager gave up with "Failed to find a
+net port in the QMI modem".
+
+Load the GSI firmware from Linux into the kodiak ipa_fw_mem region, as
+the other SM7325/QCM6490 phones do.
+
+Signed-off-by: Mateus Seiboth <mateusseiboth@gmail.com>
+---
+ arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
+index 6fff74989..7bd3f7a01 100644
+--- a/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
++++ b/arch/arm64/boot/dts/qcom/sm7325-xiaomi-lisa.dts
+@@ -716,6 +716,8 @@ &i2c4 {
+ };
+ 
+ &ipa {
++	qcom,gsi-loader = "self";
++	memory-region = <&ipa_fw_mem>;
+ 	firmware-name = "qcom/sm7325/xiaomi/lisa/ipa_fws.mbn";
+ 
+ 	status = "okay";
+-- 
+2.56.0
+
