@@ -4,7 +4,7 @@ maintainer="Luca Weiss <luca@lucaweiss.eu>"
 _flavor="postmarketos-qcom-sc7280"
 pkgname=linux-$_flavor
 pkgver=7.2.9
-pkgrel=6
+pkgrel=7
 pkgdesc="Mainline Kernel fork for SC7280/SM7325/QCM6490 devices"
 arch="aarch64"
 _carch="arm64"
@@ -93,7 +93,7 @@ package() {
 
 sha512sums="
 4852430f42a9e45833d590559875b869405d8d28d93fb9111f9b25f0b0d336c36d9be6a56a27da9c3cde642df17f792055729fa41256f51860794db3afdae674  linux-v7.2.9-sc7280.tar.gz
-aecad6c9616d033d9307bd13b36a26ffa44dbdb4f5e146d6b5701211358634c32096fb6bc531e7026ec845043c7923d925b9285d56f2d4004a5fa8fb6535ac6b  config-postmarketos-qcom-sc7280.aarch64
+89bf0f61e7e4b882e279187c2a3ef1b5786a848e26ba7f1c61b356e8f588156e833e1d7eacf35e4743d4ddec0942d9bf54714af1780c77f2dc9ec73999762f8b  config-postmarketos-qcom-sc7280.aarch64
 7eb57a1209ec20941fb41af8af15736b158cb4ef1a13aafeeef384380f36061b4e80cfadba4abe3d129660085aba0cc13363dddd1d12abc26e2f48949e9b9a62  0001-arm64-dts-qcom-sm7325-Add-Xiaomi-11-Lite-5G-NE.patch
 c7630ec480dc073cc115edd971b0eea4b61b5c089f5f01a833821fb4d920100b71639a9c7ae3c4681d52d9e4b08a5b90ca651285531cad4e18e0814ce1a77dfb  0002-arm64-dts-qcom-sm7325-xiaomi-lisa-add-msm-id-and-board-id.patch
 2a04582fc3ccd2471fcc228b59b4d04d2c427bb408318464f679d6fb1e17636dc66e75153e1e0103b9ed98704de4f57c63dc0b13fbb39aebe13f919a685aacd9  0003-drm-panel-Add-CSOT-VTDR6130-panel-driver.patch
